@@ -30,6 +30,12 @@
       user-select: none;
     }
 
+    /* Horizontal Flip Utility so natural left-facing emojis face right */
+    .flip-x {
+      transform: scaleX(-1);
+      display: inline-block;
+    }
+
     /* THEME 1: SPACE EXPLORER */
     .theme-space {
       background: linear-gradient(135deg, #0b0d1b 0%, #1a1c3b 50%, #2a0845 100%);
@@ -230,7 +236,6 @@
 
   <div id="fireworks-container"></div>
 
-  <!-- HEADER & TIMER BANK -->
   <header class="p-4 max-w-md mx-auto">
     <div class="flex justify-between items-center mb-3">
       <div class="flex items-center space-x-2">
@@ -243,7 +248,7 @@
           </div>
         </div>
       </div>
-      <button onclick="openParentModal()" class="p-2 rounded-full bg-white/10 hover:bg-white/20 text-lg transition">
+      <button onclick="openParentModal()" class="p-2 rounded-full bg-white/10 hover:bg-white/20 text-lg transition" title="Parent Settings">
         ⚙️
       </button>
     </div>
@@ -251,8 +256,8 @@
     <!-- START HUNT / TIMER BANNER -->
     <div class="card-theme p-4 text-center mb-4 relative overflow-hidden">
       <div id="hunt-not-started">
-        <p class="text-sm mb-2 opacity-90">Ready for school? Start your quest timer!</p>
-        <button onclick="startMorningHunt()" class="w-full py-3 px-4 btn-accent rounded-xl font-bold text-lg shadow-lg active:scale-95 transition animate-pulse-subtle">
+        <p class="text-sm mb-2 opacity-90" id="hunt-subtitle-disp">Ready for school? Start your quest timer!</p>
+        <button onclick="startMorningHunt()" id="start-hunt-btn" class="w-full py-3 px-4 btn-accent rounded-xl font-bold text-lg shadow-lg active:scale-95 transition animate-pulse-subtle">
           🚀 START MORNING HUNT
         </button>
       </div>
@@ -263,14 +268,17 @@
           <span id="elapsed-time-disp">Duration: 0m</span>
         </div>
         <div class="text-xl font-black my-1" id="time-bank-disp">
-          🥕 Feed the Horse: <span class="text-green-400">0 Carrots</span> 🐴
+          <span class="flip-x" id="time-bank-start-icon">🥕</span> Feed the Horse: <span class="text-green-400">0 Carrots</span> 🐴
         </div>
         
-        <!-- PROGRESS BAR FLANKED BY EDITABLE EMOJIS -->
-        <div class="flex items-center space-x-2 my-2">
-          <span class="text-xl flex-shrink-0 animate-bounce" id="bar-start-emoji">🥕</span>
-          <div class="flex-1 bg-black/30 h-4 rounded-full overflow-hidden relative shadow-inner">
-            <div id="progress-bar-fill" class="h-full bg-green-400 transition-all duration-300 rounded-full" style="width: 0%"></div>
+        <!-- PROGRESS BAR FLANKED BY EDITABLE EMOJIS AND RIDER AT THE TIP -->
+        <div class="flex items-center space-x-3 my-3 px-1">
+          <span class="text-xl flex-shrink-0 flip-x" id="bar-start-emoji">🥕</span>
+          <div class="flex-1 bg-black/30 h-5 rounded-full relative shadow-inner flex items-center pr-1">
+            <div id="progress-bar-fill" class="h-full bg-green-400 transition-all duration-500 rounded-full relative" style="width: 0%">
+              <!-- Rider emoji attached to the right leading edge of the progress fill -->
+              <span id="bar-rider-emoji" class="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 text-xl flip-x transition-all duration-500 z-10 drop-shadow-md">🥕</span>
+            </div>
           </div>
           <span class="text-2xl flex-shrink-0" id="bar-target-emoji">🐴</span>
         </div>
@@ -282,7 +290,7 @@
 
       <div id="hunt-completed" class="hidden">
         <div class="text-xl font-bold text-yellow-300 mb-1">🎉 QUEST COMPLETE! 🎉</div>
-        <p class="text-sm mb-3" id="hunt-completed-summary">You unlocked 0 Carrots for Feed the Horse! 🐴</p>
+        <p class="text-sm sm:text-base font-semibold mb-3 leading-relaxed px-1" id="hunt-completed-summary">You unlocked 0 Carrots for Feed the Horse! 🐴</p>
         <button onclick="triggerPlayTimeCelebration()" class="w-full py-3 px-4 bg-yellow-400 text-black font-black text-lg rounded-xl shadow-lg active:scale-95 transition mb-2">
           🚀 START REWARD TIME! 🎆
         </button>
@@ -293,7 +301,6 @@
     </div>
   </header>
 
-  <!-- TASK LIST SCAVENGER HUNT -->
   <main class="p-4 max-w-md mx-auto space-y-3" id="task-list-container">
     <!-- Tasks dynamically rendered here -->
   </main>
@@ -306,7 +313,6 @@
     </button>
   </div>
 
-  <!-- PIN VERIFICATION MODAL -->
   <div id="pin-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
     <div class="bg-gray-900 text-white rounded-2xl p-6 max-w-xs w-full text-center border-2 border-purple-500 shadow-2xl">
       <h3 class="text-lg font-bold mb-1">🔒 Parent Verification</h3>
@@ -333,10 +339,9 @@
     </div>
   </div>
 
-  <!-- PARENT SETTINGS MODAL -->
   <div id="parent-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4 overflow-y-auto">
-    <div class="bg-gray-900 text-white rounded-2xl p-5 max-w-md w-full my-8 border border-gray-700 shadow-2xl max-h-[90vh] overflow-y-auto">
-      <div class="flex justify-between items-center mb-4">
+    <div class="bg-gray-900 text-white rounded-2xl p-5 max-w-md w-full my-8 border border-gray-700 shadow-2xl max-h-[90vh] overflow-y-auto relative">
+      <div class="flex justify-between items-center mb-4 border-b border-gray-800 pb-2">
         <h2 class="text-xl font-bold flex items-center space-x-2">
           <span>⚙️</span>
           <span>Parent Settings</span>
@@ -344,10 +349,50 @@
         <button onclick="closeParentModal()" class="text-gray-400 hover:text-white text-2xl">✕</button>
       </div>
 
+      <!-- PARENT PIN SETTINGS -->
+      <div class="mb-5 bg-gray-800/60 p-3 rounded-xl border border-gray-700">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center space-x-1">
+            <label class="text-xs font-bold text-gray-300">ENABLE PARENT PIN PROTECTION</label>
+            <div class="relative group inline-block">
+              <span tabindex="0" class="text-purple-400 hover:text-purple-300 cursor-pointer text-xs focus:outline-none">ℹ️</span>
+              <div class="absolute left-0 top-full mt-1.5 hidden group-hover:block group-focus:block group-active:block w-64 p-2.5 bg-gray-950 border border-purple-500/70 rounded-xl shadow-2xl text-gray-200 text-[11px] leading-snug z-50 pointer-events-none font-normal">
+                Keeps kids from checking off tasks on their own without your verification!
+              </div>
+            </div>
+          </div>
+          <label class="relative inline-flex items-center cursor-pointer">
+            <input type="checkbox" id="pin-enabled-toggle" onchange="togglePinProtection(this.checked)" class="sr-only peer">
+            <div class="w-11 h-6 bg-gray-900 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600 border border-gray-700"></div>
+          </label>
+        </div>
+
+        <div id="pin-input-container" class="hidden mt-3 pt-2 border-t border-gray-700/60">
+          <div class="flex items-center space-x-1 mb-1">
+            <span class="text-[10px] text-gray-400">4-Digit Parent PIN</span>
+            <div class="relative group inline-block">
+              <span tabindex="0" class="text-purple-400 hover:text-purple-300 cursor-pointer text-[10px] focus:outline-none">ℹ️</span>
+              <div class="absolute left-0 top-full mt-1 hidden group-hover:block group-focus:block group-active:block w-52 p-2 bg-gray-950 border border-purple-500/70 rounded-xl shadow-2xl text-gray-200 text-[10px] leading-snug z-50 pointer-events-none font-normal">
+                The 4-digit code required to verify task completion and access parent settings (default is 4865).
+              </div>
+            </div>
+          </div>
+          <input type="text" id="pin-code-input" maxlength="4" placeholder="4865" onchange="savePinCode(this.value)" class="w-full bg-gray-900 border border-gray-700 rounded-xl p-2 text-center font-mono text-sm tracking-widest text-white font-bold focus:border-purple-500 focus:outline-none" />
+        </div>
+      </div>
+
       <!-- THEME SELECTOR -->
       <div class="mb-5">
-        <label class="block text-xs font-bold text-gray-400 mb-2">QUEST THEME</label>
-        <select id="theme-select" onchange="changeTheme(this.value)" class="w-full bg-gray-800 border border-gray-700 rounded-xl p-3 text-sm text-white font-bold">
+        <div class="flex items-center space-x-1 mb-2">
+          <label class="text-xs font-bold text-gray-300">QUEST THEME</label>
+          <div class="relative group inline-block">
+            <span tabindex="0" class="text-purple-400 hover:text-purple-300 cursor-pointer text-xs focus:outline-none">ℹ️</span>
+            <div class="absolute left-0 top-full mt-1.5 hidden group-hover:block group-focus:block group-active:block w-64 p-2.5 bg-gray-950 border border-purple-500/70 rounded-xl shadow-2xl text-gray-200 text-[11px] leading-snug z-50 pointer-events-none font-normal">
+              Choose a visual style, background, theme-specific sound effects, and victory song for your child's daily quest (e.g., Space Explorer, Dino Safari, Superhero).
+            </div>
+          </div>
+        </div>
+        <select id="theme-select" onchange="changeTheme(this.value)" class="w-full bg-gray-800 border border-gray-700 rounded-xl p-3 text-sm text-white font-bold focus:border-purple-500 focus:outline-none">
           <option value="space">🚀 Space Explorer</option>
           <option value="pirate">🏴‍☠️ Pirate Treasure Hunt</option>
           <option value="dino">🦖 Dino Safari</option>
@@ -363,40 +408,154 @@
 
       <!-- TARGET TIME -->
       <div class="mb-5">
-        <label class="block text-xs font-bold text-gray-400 mb-2">TARGET READY TIME</label>
-        <input type="time" id="target-time-input" value="08:00" onchange="saveTargetTime(this.value)" class="w-full bg-gray-800 border border-gray-700 rounded-xl p-3 text-sm text-white font-bold" />
+        <div class="flex items-center space-x-1 mb-2">
+          <label class="text-xs font-bold text-gray-300">TARGET READY TIME</label>
+          <div class="relative group inline-block">
+            <span tabindex="0" class="text-purple-400 hover:text-purple-300 cursor-pointer text-xs focus:outline-none">ℹ️</span>
+            <div class="absolute left-0 top-full mt-1.5 hidden group-hover:block group-focus:block group-active:block w-64 p-2.5 bg-gray-950 border border-purple-500/70 rounded-xl shadow-2xl text-gray-200 text-[11px] leading-snug z-50 pointer-events-none font-normal">
+              The deadline time your kids need to be completely finished by. Finishing before this target time earns extra bonus rewards/play time!
+            </div>
+          </div>
+        </div>
+        <input type="time" id="target-time-input" value="08:00" onchange="saveTargetTime(this.value)" class="w-full bg-gray-800 border border-gray-700 rounded-xl p-3 text-sm text-white font-bold focus:border-purple-500 focus:outline-none" />
+      </div>
+
+      <!-- EDITABLE HUNT SUBTITLE, BUTTON TEXT & COMPLETION MESSAGE -->
+      <div class="mb-5 border-t border-gray-800 pt-4">
+        <div class="flex items-center space-x-1 mb-2">
+          <label class="text-xs font-bold text-gray-300">HUNT START & COMPLETION CARD TEXT</label>
+          <div class="relative group inline-block">
+            <span tabindex="0" class="text-purple-400 hover:text-purple-300 cursor-pointer text-xs focus:outline-none">ℹ️</span>
+            <div class="absolute left-0 bottom-full mb-1.5 hidden group-hover:block group-focus:block group-active:block w-64 p-2.5 bg-gray-950 border border-purple-500/70 rounded-xl shadow-2xl text-gray-200 text-[11px] leading-snug z-50 pointer-events-none font-normal">
+              Customize the motivational subtitle, big start button text, and the final Quest Completed celebration message shown to your kids!
+            </div>
+          </div>
+        </div>
+
+        <div class="space-y-3">
+          <div>
+            <div class="flex items-center space-x-1 mb-1">
+              <span class="text-[10px] text-gray-400">Hunt Subtitle Text</span>
+              <div class="relative group inline-block">
+                <span tabindex="0" class="text-purple-400 hover:text-purple-300 cursor-pointer text-[10px] focus:outline-none">ℹ️</span>
+                <div class="absolute left-0 bottom-full mb-1 hidden group-hover:block group-focus:block group-active:block w-56 p-2 bg-gray-950 border border-purple-500/70 rounded-xl shadow-2xl text-gray-200 text-[10px] leading-snug z-50 pointer-events-none font-normal">
+                  The motivational text shown at the top of the main screen before starting the hunt (e.g., 'Ready for school? Start your quest timer!').
+                </div>
+              </div>
+            </div>
+            <input type="text" id="hunt-subtitle-input" placeholder="e.g. Ready for school? Start your quest timer!" onchange="saveStartTextConfig()" class="w-full bg-gray-800 border border-gray-700 rounded-xl p-2.5 text-xs text-white font-bold focus:border-purple-500 focus:outline-none" />
+          </div>
+
+          <div>
+            <div class="flex items-center space-x-1 mb-1">
+              <span class="text-[10px] text-gray-400">Start Button Text</span>
+              <div class="relative group inline-block">
+                <span tabindex="0" class="text-purple-400 hover:text-purple-300 cursor-pointer text-[10px] focus:outline-none">ℹ️</span>
+                <div class="absolute left-0 bottom-full mb-1 hidden group-hover:block group-focus:block group-active:block w-56 p-2 bg-gray-950 border border-purple-500/70 rounded-xl shadow-2xl text-gray-200 text-[10px] leading-snug z-50 pointer-events-none font-normal">
+                  The custom text displayed on the big main action button (e.g., 'START MORNING HUNT' or 'BEGIN MISSION').
+                </div>
+              </div>
+            </div>
+            <input type="text" id="hunt-btn-text-input" placeholder="e.g. START MORNING HUNT" onchange="saveStartTextConfig()" class="w-full bg-gray-800 border border-gray-700 rounded-xl p-2.5 text-xs text-white font-bold focus:border-purple-500 focus:outline-none" />
+          </div>
+
+          <div>
+            <div class="flex items-center space-x-1 mb-1">
+              <span class="text-[10px] text-purple-300 font-bold">🎉 Quest Completion Celebration Message</span>
+              <div class="relative group inline-block">
+                <span tabindex="0" class="text-purple-400 hover:text-purple-300 cursor-pointer text-[10px] focus:outline-none">ℹ️</span>
+                <div class="absolute left-0 bottom-full mb-1 hidden group-hover:block group-focus:block group-active:block w-64 p-2.5 bg-gray-950 border border-purple-500/70 rounded-xl shadow-2xl text-gray-200 text-[10px] leading-snug z-50 pointer-events-none font-normal">
+                  Full custom completion sentence! Available automatic tags: {score} = points/mins saved, {unit} = unit name, {goal} = goal name, {target} = target emoji, {start} = item emoji.
+                </div>
+              </div>
+            </div>
+            <textarea id="completion-msg-input" rows="2" placeholder="You unlocked {score} {unit} for {goal}! {target}" onchange="saveStartTextConfig()" class="w-full bg-gray-800 border border-gray-700 rounded-xl p-2.5 text-xs text-white font-bold focus:border-purple-500 focus:outline-none"></textarea>
+            <span class="text-[9px] text-gray-400 block mt-0.5">Tags: <code class="text-purple-300">{score}</code>, <code class="text-purple-300">{unit}</code>, <code class="text-purple-300">{goal}</code>, <code class="text-purple-300">{target}</code>, <code class="text-purple-300">{start}</code></span>
+          </div>
+        </div>
       </div>
 
       <!-- PRIZE / REWARD CONFIG -->
       <div class="mb-5 border-t border-gray-800 pt-4">
-        <label class="block text-xs font-bold text-gray-400 mb-2">CUSTOM REWARD & GOAL TRACKER</label>
+        <div class="flex items-center space-x-1 mb-2">
+          <label class="text-xs font-bold text-gray-300">CUSTOM REWARD & GOAL TRACKER</label>
+          <div class="relative group inline-block">
+            <span tabindex="0" class="text-purple-400 hover:text-purple-300 cursor-pointer text-xs focus:outline-none">ℹ️</span>
+            <div class="absolute left-0 bottom-full mb-1.5 hidden group-hover:block group-focus:block group-active:block w-64 p-2.5 bg-gray-950 border border-purple-500/70 rounded-xl shadow-2xl text-gray-200 text-[11px] leading-snug z-50 pointer-events-none font-normal">
+              Customize what kids are earning! Pick emojis, a goal activity name, and unit of measurement to display on the progress bar and timer bank.
+            </div>
+          </div>
+        </div>
         
         <div class="grid grid-cols-2 gap-2 mb-2">
           <div>
-            <span class="text-[10px] text-gray-400 block mb-1">Start / Item Emoji</span>
-            <input type="text" id="prize-emoji-input" placeholder="e.g. 🥕, 🪙, 💧, ⏱️" onchange="savePrizeConfig()" class="w-full bg-gray-800 border border-gray-700 rounded-xl p-2 text-center text-xs text-white font-bold" />
+            <div class="flex items-center space-x-1 mb-1">
+              <span class="text-[10px] text-gray-400">Start / Item Emoji</span>
+              <div class="relative group inline-block">
+                <span tabindex="0" class="text-purple-400 hover:text-purple-300 cursor-pointer text-[10px] focus:outline-none">ℹ️</span>
+                <div class="absolute left-0 bottom-full mb-1 hidden group-hover:block group-focus:block group-active:block w-48 p-2 bg-gray-950 border border-purple-500/70 rounded-xl shadow-2xl text-gray-200 text-[10px] leading-snug z-50 pointer-events-none font-normal">
+                  The item emoji shown on the left (flipped right) that moves across the progress bar as tasks are completed (e.g., 🥕, 🪙, ⏱️).
+                </div>
+              </div>
+            </div>
+            <input type="text" id="prize-emoji-input" placeholder="e.g. 🥕, 🪙, 💧, ⏱️" onchange="savePrizeConfig()" class="w-full bg-gray-800 border border-gray-700 rounded-xl p-2 text-center text-xs text-white font-bold focus:border-purple-500 focus:outline-none" />
           </div>
+
           <div>
-            <span class="text-[10px] text-gray-400 block mb-1">Target / Destination Emoji</span>
-            <input type="text" id="target-emoji-input" placeholder="e.g. 🐴, 🐖, 🪣, 🎮" onchange="savePrizeConfig()" class="w-full bg-gray-800 border border-gray-700 rounded-xl p-2 text-center text-xs text-white font-bold" />
+            <div class="flex items-center space-x-1 mb-1">
+              <span class="text-[10px] text-gray-400">Target Emoji</span>
+              <div class="relative group inline-block">
+                <span tabindex="0" class="text-purple-400 hover:text-purple-300 cursor-pointer text-[10px] focus:outline-none">ℹ️</span>
+                <div class="absolute right-0 bottom-full mb-1 hidden group-hover:block group-focus:block group-active:block w-48 p-2 bg-gray-950 border border-purple-500/70 rounded-xl shadow-2xl text-gray-200 text-[10px] leading-snug z-50 pointer-events-none font-normal">
+                  The destination goal emoji on the right side of the progress bar (e.g., 🐴 for horse, 🐖 for piggy bank, 🎮 for gaming).
+                </div>
+              </div>
+            </div>
+            <input type="text" id="target-emoji-input" placeholder="e.g. 🐴, 🐖, 🪣, 🎮" onchange="savePrizeConfig()" class="w-full bg-gray-800 border border-gray-700 rounded-xl p-2 text-center text-xs text-white font-bold focus:border-purple-500 focus:outline-none" />
           </div>
         </div>
 
         <div class="grid grid-cols-3 gap-2">
           <div class="col-span-2">
-            <span class="text-[10px] text-gray-400 block mb-1">Goal / Activity Name</span>
-            <input type="text" id="prize-name-input" placeholder="e.g. Feed the Horse, Fill Piggy Bank" onchange="savePrizeConfig()" class="w-full bg-gray-800 border border-gray-700 rounded-xl p-2 text-xs text-white font-bold" />
+            <div class="flex items-center space-x-1 mb-1">
+              <span class="text-[10px] text-gray-400">Goal / Activity Name</span>
+              <div class="relative group inline-block">
+                <span tabindex="0" class="text-purple-400 hover:text-purple-300 cursor-pointer text-[10px] focus:outline-none">ℹ️</span>
+                <div class="absolute left-0 bottom-full mb-1 hidden group-hover:block group-focus:block group-active:block w-52 p-2 bg-gray-950 border border-purple-500/70 rounded-xl shadow-2xl text-gray-200 text-[10px] leading-snug z-50 pointer-events-none font-normal">
+                  The name of the reward or activity being tracked (e.g., 'Feed the Horse', 'Fill Piggy Bank', 'Earn Play Time').
+                </div>
+              </div>
+            </div>
+            <input type="text" id="prize-name-input" placeholder="e.g. Feed the Horse, Fill Piggy Bank" onchange="savePrizeConfig()" class="w-full bg-gray-800 border border-gray-700 rounded-xl p-2 text-xs text-white font-bold focus:border-purple-500 focus:outline-none" />
           </div>
+
           <div>
-            <span class="text-[10px] text-gray-400 block mb-1">Unit</span>
-            <input type="text" id="prize-unit-input" placeholder="e.g. Carrots, Coins, Mins" onchange="savePrizeConfig()" class="w-full bg-gray-800 border border-gray-700 rounded-xl p-2 text-xs text-white font-bold" />
+            <div class="flex items-center space-x-1 mb-1">
+              <span class="text-[10px] text-gray-400">Unit</span>
+              <div class="relative group inline-block">
+                <span tabindex="0" class="text-purple-400 hover:text-purple-300 cursor-pointer text-[10px] focus:outline-none">ℹ️</span>
+                <div class="absolute right-0 bottom-full mb-1 hidden group-hover:block group-focus:block group-active:block w-44 p-2 bg-gray-950 border border-purple-500/70 rounded-xl shadow-2xl text-gray-200 text-[10px] leading-snug z-50 pointer-events-none font-normal">
+                  The unit of measurement for saved bonus time/points (e.g., 'Carrots', 'Coins', 'Mins', 'Points', 'Stars').
+                </div>
+              </div>
+            </div>
+            <input type="text" id="prize-unit-input" placeholder="e.g. Carrots, Coins, Mins" onchange="savePrizeConfig()" class="w-full bg-gray-800 border border-gray-700 rounded-xl p-2 text-xs text-white font-bold focus:border-purple-500 focus:outline-none" />
           </div>
         </div>
       </div>
 
       <!-- KIDS CONFIGURATION -->
       <div class="mb-5 border-t border-gray-800 pt-4">
-        <label class="block text-xs font-bold text-gray-400 mb-2">KIDS CONFIGURATION (1 TO 3 KIDS)</label>
+        <div class="flex items-center space-x-1 mb-2">
+          <label class="text-xs font-bold text-gray-300">KIDS CONFIGURATION (1 TO 3 KIDS)</label>
+          <div class="relative group inline-block">
+            <span tabindex="0" class="text-purple-400 hover:text-purple-300 cursor-pointer text-xs focus:outline-none">ℹ️</span>
+            <div class="absolute left-0 bottom-full mb-1.5 hidden group-hover:block group-focus:block group-active:block w-64 p-2.5 bg-gray-950 border border-purple-500/70 rounded-xl shadow-2xl text-gray-200 text-[11px] leading-snug z-50 pointer-events-none font-normal">
+              Set how many kids are playing, edit their button initials/labels (e.g., W, O, A), and pick their unique button colors.
+            </div>
+          </div>
+        </div>
+
         <div class="flex space-x-2 mb-3">
           <button onclick="setNumKids(1)" id="btn-num-kids-1" class="flex-1 py-2 bg-gray-800 text-xs font-bold rounded-xl border border-gray-700 text-gray-300">1 Kid</button>
           <button onclick="setNumKids(2)" id="btn-num-kids-2" class="flex-1 py-2 bg-gray-800 text-xs font-bold rounded-xl border border-gray-700 text-gray-300">2 Kids</button>
@@ -410,8 +569,16 @@
       <!-- EDIT TASKS & REORDERING -->
       <div class="mb-5 border-t border-gray-800 pt-4">
         <div class="flex justify-between items-center mb-2">
-          <label class="block text-xs font-bold text-gray-400">EDIT TASKS & OVERRIDES</label>
-          <button onclick="addNewTask()" class="text-xs bg-green-600 text-white font-bold px-3 py-1 rounded-lg">
+          <div class="flex items-center space-x-1">
+            <label class="text-xs font-bold text-gray-300">EDIT TASKS & REORDERING</label>
+            <div class="relative group inline-block">
+              <span tabindex="0" class="text-purple-400 hover:text-purple-300 cursor-pointer text-xs focus:outline-none">ℹ️</span>
+              <div class="absolute left-0 bottom-full mb-1.5 hidden group-hover:block group-focus:block group-active:block w-64 p-2.5 bg-gray-950 border border-purple-500/70 rounded-xl shadow-2xl text-gray-200 text-[11px] leading-snug z-50 pointer-events-none font-normal">
+                Use ▲ and ▼ buttons to change task order, edit task titles and emojis, toggle completions manually, or delete tasks.
+              </div>
+            </div>
+          </div>
+          <button onclick="addNewTask()" class="text-xs bg-green-600 hover:bg-green-500 text-white font-bold px-3 py-1 rounded-lg transition">
             + Add Task
           </button>
         </div>
@@ -421,23 +588,42 @@
       </div>
 
       <!-- HUNT & WEEKLY RESETS -->
-      <div class="mb-5 border-t border-gray-800 pt-4 space-y-2">
-        <button onclick="resetMorningHunt(); closeParentModal();" class="w-full py-2 bg-red-900/40 text-red-300 border border-red-700 rounded-xl font-bold text-xs">
-          ↺ Reset Today's Hunt State
-        </button>
-        <button onclick="resetFullWeekAndStreaks();" class="w-full py-2 bg-red-950 text-red-400 border border-red-800 rounded-xl font-bold text-xs">
-          ⚠️ Reset Full Week & Streaks
-        </button>
+      <div class="mb-5 border-t border-gray-800 pt-4">
+        <div class="flex items-center space-x-1 mb-2">
+          <label class="text-xs font-bold text-gray-300">RESETS & RESTARTS</label>
+          <div class="relative group inline-block">
+            <span tabindex="0" class="text-purple-400 hover:text-purple-300 cursor-pointer text-xs focus:outline-none">ℹ️</span>
+            <div class="absolute left-0 bottom-full mb-1.5 hidden group-hover:block group-focus:block group-active:block w-64 p-2.5 bg-gray-950 border border-purple-500/70 rounded-xl shadow-2xl text-gray-200 text-[11px] leading-snug z-50 pointer-events-none font-normal">
+              Clear today's checked tasks to restart the hunt, or wipe weekly scoreboard stats and streaks.
+            </div>
+          </div>
+        </div>
+        <div class="space-y-2">
+          <button onclick="resetMorningHunt(); closeParentModal();" class="w-full py-2 bg-red-900/40 hover:bg-red-900/60 text-red-300 border border-red-700 rounded-xl font-bold text-xs transition">
+            ↺ Reset Today's Hunt State
+          </button>
+          <button onclick="resetFullWeekAndStreaks();" class="w-full py-2 bg-red-950 hover:bg-red-900 text-red-400 border border-red-800 rounded-xl font-bold text-xs transition">
+            ⚠️ Reset Full Week & Streaks
+          </button>
+        </div>
       </div>
 
       <!-- DATA BACKUP / RESTORE -->
       <div class="border-t border-gray-800 pt-4 mb-5">
-        <label class="block text-xs font-bold text-gray-400 mb-2">MANUAL DATA BACKUP</label>
+        <div class="flex items-center space-x-1 mb-2">
+          <label class="text-xs font-bold text-gray-300">MANUAL DATA BACKUP</label>
+          <div class="relative group inline-block">
+            <span tabindex="0" class="text-purple-400 hover:text-purple-300 cursor-pointer text-xs focus:outline-none">ℹ️</span>
+            <div class="absolute left-0 bottom-full mb-1.5 hidden group-hover:block group-focus:block group-active:block w-64 p-2.5 bg-gray-950 border border-purple-500/70 rounded-xl shadow-2xl text-gray-200 text-[11px] leading-snug z-50 pointer-events-none font-normal">
+              Copy all settings as JSON text to move to another device, or paste a backup to restore.
+            </div>
+          </div>
+        </div>
         <div class="flex space-x-2">
-          <button onclick="copyDataBackup()" class="flex-1 py-2 bg-gray-800 text-xs font-bold rounded-lg text-gray-300">
+          <button onclick="copyDataBackup()" class="flex-1 py-2 bg-gray-800 hover:bg-gray-700 text-xs font-bold rounded-lg text-gray-300 transition">
             📋 Copy JSON
           </button>
-          <button onclick="restoreDataBackup()" class="flex-1 py-2 bg-gray-800 text-xs font-bold rounded-lg text-gray-300">
+          <button onclick="restoreDataBackup()" class="flex-1 py-2 bg-gray-800 hover:bg-gray-700 text-xs font-bold rounded-lg text-gray-300 transition">
             📥 Restore JSON
           </button>
         </div>
@@ -445,17 +631,24 @@
 
       <!-- GOOGLE CLOUD SYNC SETTINGS -->
       <div class="p-3 bg-gray-800/80 border border-purple-500/30 rounded-xl">
-        <label class="block text-xs font-bold text-purple-300 mb-1">☁️ GOOGLE SHEETS AUTO-SYNC URL</label>
+        <div class="flex items-center space-x-1 mb-1">
+          <label class="text-xs font-bold text-purple-300">☁️ GOOGLE SHEETS AUTO-SYNC URL</label>
+          <div class="relative group inline-block">
+            <span tabindex="0" class="text-purple-400 hover:text-purple-300 cursor-pointer text-xs focus:outline-none">ℹ️</span>
+            <div class="absolute left-0 bottom-full mb-1.5 hidden group-hover:block group-focus:block group-active:block w-64 p-2.5 bg-gray-950 border border-purple-500/70 rounded-xl shadow-2xl text-gray-200 text-[11px] leading-snug z-50 pointer-events-none font-normal">
+              Paste a Google Apps Script Web App URL to auto-sync hunt progress in real-time across both parents' phones.
+            </div>
+          </div>
+        </div>
         <p class="text-[10px] text-gray-400 mb-2">Paste your Google Apps Script Web App URL here to keep both phones auto-synced.</p>
-        <input type="url" id="cloud-sync-url-input" placeholder="https://script.google.com/macros/s/.../exec" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2 text-xs text-white mb-2" />
-        <button onclick="saveCloudSyncUrl()" class="w-full py-2 bg-purple-600 text-xs font-bold rounded-lg text-white">
+        <input type="url" id="cloud-sync-url-input" placeholder="https://script.google.com/macros/s/.../exec" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2 text-xs text-white mb-2 focus:border-purple-500 focus:outline-none" />
+        <button onclick="saveCloudSyncUrl()" class="w-full py-2 bg-purple-600 hover:bg-purple-500 text-xs font-bold rounded-lg text-white transition">
           Save & Sync Now
         </button>
       </div>
     </div>
   </div>
 
-  <!-- SCOREBOARD MODAL -->
   <div id="scoreboard-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
     <div class="bg-gray-900 text-white rounded-2xl p-5 max-w-sm w-full border border-yellow-500/30 shadow-2xl">
       <div class="flex justify-between items-center mb-4">
@@ -481,10 +674,13 @@
 
   <!-- APP SCRIPT LOGIC -->
   <script>
-    // DEFAULT CONFIG
     const DEFAULT_CONFIG = {
+      pinEnabled: false,
       pin: "4865",
       targetTime: "08:00",
+      huntSubtitle: "Ready for school? Start your quest timer!",
+      huntStartBtnText: "START MORNING HUNT",
+      completionMsgTemplate: "You unlocked {score} {unit} for {goal}! {target}",
       prizeEmoji: "🥕",
       targetEmoji: "🐴",
       prizeName: "Feed the Horse",
@@ -509,6 +705,11 @@
       ]
     };
 
+    const THEME_EMOJIS = {
+      space: "🚀", pirate: "🏴‍☠️", dino: "🦖", superhero: "🦸", racing: "🏎️",
+      ocean: "🌊", magic: "🏰", agent: "🕵️", arcade: "👾", jungle: "🐾"
+    };
+
     let appData = JSON.parse(JSON.stringify(DEFAULT_CONFIG));
     let pinMode = null; // 'TASK' or 'SETTINGS'
     let pendingTaskId = null;
@@ -516,117 +717,162 @@
     let pinBuffer = "";
     let fxInstance = null;
 
-    // AUDIO SYNTHESIZER
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
-    function playNote(freq, type, startTime, duration, vol = 0.2) {
+    function playNote(freq, type, startTime, duration, vol = 0.2, endFreq = null) {
+      if (!audioCtx) return;
       if (audioCtx.state === 'suspended') audioCtx.resume();
-      const osc = audioCtx.createOscillator();
-      const gain = audioCtx.createGain();
-      osc.type = type;
-      osc.frequency.setValueAtTime(freq, startTime);
-      gain.gain.setValueAtTime(vol, startTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
-      osc.connect(gain);
-      gain.connect(audioCtx.destination);
-      osc.start(startTime);
-      osc.stop(startTime + duration);
+      try {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, startTime);
+        if (endFreq !== null) {
+          osc.frequency.exponentialRampToValueAtTime(Math.max(10, endFreq), startTime + duration);
+        }
+        gain.gain.setValueAtTime(vol, startTime);
+        gain.gain.exponentialRampToValueAtTime(0.0001, startTime + duration);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start(startTime);
+        osc.stop(startTime + duration);
+      } catch(e) { console.error(e); }
     }
 
     function playSoundEffect(type) {
       if (audioCtx.state === 'suspended') audioCtx.resume();
       const now = audioCtx.currentTime;
+      const t = appData.activeTheme;
 
-      switch(appData.activeTheme) {
-        case 'space':
-          playNote(300, 'sawtooth', now, 0.15, 0.2);
-          playNote(800, 'sawtooth', now + 0.08, 0.2, 0.2);
-          break;
-        case 'pirate':
-          playNote(150, 'square', now, 0.25, 0.3);
-          playNote(100, 'square', now + 0.1, 0.3, 0.3);
-          break;
-        case 'dino':
-          playNote(90, 'sawtooth', now, 0.4, 0.3);
-          playNote(120, 'sawtooth', now + 0.1, 0.3, 0.2);
-          break;
-        case 'superhero':
-          playNote(400, 'triangle', now, 0.1, 0.25);
-          playNote(600, 'triangle', now + 0.08, 0.1, 0.25);
-          playNote(900, 'triangle', now + 0.16, 0.25, 0.3);
-          break;
-        case 'racing':
-          playNote(200, 'sawtooth', now, 0.1, 0.2);
-          playNote(500, 'sawtooth', now + 0.06, 0.2, 0.25);
-          break;
-        case 'ocean':
-          playNote(523.25, 'sine', now, 0.15, 0.2);
-          playNote(659.25, 'sine', now + 0.1, 0.2, 0.2);
-          break;
-        case 'magic':
-          playNote(880, 'sine', now, 0.1, 0.15);
-          playNote(1318.51, 'sine', now + 0.06, 0.1, 0.15);
-          playNote(1760, 'sine', now + 0.12, 0.25, 0.2);
-          break;
-        case 'agent':
-          playNote(700, 'square', now, 0.05, 0.15);
-          playNote(1000, 'square', now + 0.06, 0.1, 0.15);
-          break;
-        case 'arcade':
-          playNote(600, 'square', now, 0.08, 0.2);
-          playNote(900, 'square', now + 0.08, 0.18, 0.2);
-          break;
-        case 'jungle':
-          playNote(180, 'triangle', now, 0.15, 0.3);
-          playNote(260, 'triangle', now + 0.1, 0.2, 0.3);
-          break;
-        default:
-          playNote(523.25, 'sine', now, 0.15, 0.2);
-          playNote(659.25, 'sine', now + 0.1, 0.2, 0.2);
+      if (t === 'space') {
+        playNote(300, 'sawtooth', now, 0.2, 0.2, 1200);
+        playNote(600, 'sine', now + 0.08, 0.25, 0.15, 1800);
+      } else if (t === 'pirate') {
+        playNote(146.83, 'square', now, 0.18, 0.25);
+        playNote(174.61, 'square', now + 0.05, 0.18, 0.25);
+        playNote(220.00, 'square', now + 0.10, 0.25, 0.3);
+      } else if (t === 'dino') {
+        playNote(180, 'sawtooth', now, 0.3, 0.35, 45);
+        playNote(90, 'triangle', now + 0.05, 0.3, 0.3, 30);
+      } else if (t === 'superhero') {
+        playNote(261.63, 'triangle', now, 0.1, 0.25);
+        playNote(329.63, 'triangle', now + 0.07, 0.1, 0.25);
+        playNote(392.00, 'triangle', now + 0.14, 0.25, 0.3);
+      } else if (t === 'racing') {
+        playNote(150, 'sawtooth', now, 0.25, 0.3, 650);
+      } else if (t === 'ocean') {
+        playNote(400, 'sine', now, 0.15, 0.2, 850);
+        playNote(600, 'sine', now + 0.08, 0.2, 0.2, 1100);
+      } else if (t === 'magic') {
+        [1046.5, 1318.5, 1567.98, 2093.0].forEach((f, i) => {
+          playNote(f, 'sine', now + i * 0.05, 0.15, 0.15);
+        });
+      } else if (t === 'agent') {
+        playNote(164.81, 'square', now, 0.08, 0.2);
+        playNote(196.00, 'square', now + 0.06, 0.08, 0.2);
+        playNote(233.08, 'square', now + 0.12, 0.15, 0.25);
+      } else if (t === 'arcade') {
+        playNote(440, 'square', now, 0.07, 0.2);
+        playNote(880, 'square', now + 0.07, 0.15, 0.2);
+      } else if (t === 'jungle') {
+        playNote(220, 'triangle', now, 0.18, 0.35, 60);
+        playNote(330, 'sine', now + 0.08, 0.15, 0.25, 110);
+      } else {
+        playNote(523.25, 'sine', now, 0.15, 0.2);
+        playNote(659.25, 'sine', now + 0.1, 0.2, 0.2);
       }
     }
 
     function playVictorySong() {
       if (audioCtx.state === 'suspended') audioCtx.resume();
       const now = audioCtx.currentTime;
+      const t = appData.activeTheme;
 
-      switch(appData.activeTheme) {
-        case 'space':
-          [523.25, 659.25, 783.99, 1046.50, 1318.51, 1567.98].forEach((f, i) => playNote(f, 'sawtooth', now + (i * 0.1), 0.3, 0.2));
-          break;
-        case 'pirate':
-          [293.66, 349.23, 440.00, 587.33, 440.00, 587.33].forEach((f, i) => playNote(f, 'square', now + (i * 0.14), 0.3, 0.25));
-          break;
-        case 'dino':
-          [130.81, 164.81, 196.00, 261.63, 329.63].forEach((f, i) => playNote(f, 'sawtooth', now + (i * 0.18), 0.4, 0.3));
-          break;
-        case 'superhero':
-          [261.63, 261.63, 261.63, 349.23, 440.00, 523.25].forEach((f, i) => playNote(f, 'triangle', now + (i * 0.12), 0.35, 0.3));
-          break;
-        case 'racing':
-          [329.63, 392.00, 493.88, 659.25, 783.99].forEach((f, i) => playNote(f, 'sawtooth', now + (i * 0.09), 0.25, 0.2));
-          break;
-        case 'ocean':
-          [392.00, 523.25, 659.25, 783.99, 880.00, 783.99].forEach((f, i) => playNote(f, 'sine', now + (i * 0.13), 0.3, 0.25));
-          break;
-        case 'magic':
-          [659.25, 783.99, 987.77, 1174.66, 1396.91, 1760.00].forEach((f, i) => playNote(f, 'sine', now + (i * 0.08), 0.35, 0.2));
-          break;
-        case 'agent':
-          [329.63, 392.00, 440.00, 466.16, 493.88].forEach((f, i) => playNote(f, 'square', now + (i * 0.15), 0.3, 0.2));
-          break;
-        case 'arcade':
-          [261.63, 329.63, 392.00, 523.25, 659.25, 783.99, 1046.50].forEach((f, i) => playNote(f, 'square', now + (i * 0.09), 0.25, 0.2));
-          break;
-        case 'jungle':
-          [220.00, 277.18, 329.63, 440.00, 554.37].forEach((f, i) => playNote(f, 'triangle', now + (i * 0.14), 0.35, 0.3));
-          break;
-        default:
-          [523.25, 659.25, 783.99, 1046.50].forEach((f, i) => playNote(f, 'triangle', now + (i * 0.12), 0.3, 0.2));
+      if (t === 'space') {
+        const notes = [523.25, 659.25, 783.99, 987.77, 1046.50, 1318.51, 1567.98, 2093.00];
+        notes.forEach((f, i) => {
+          playNote(f, 'sawtooth', now + (i * 0.11), 0.3, 0.2);
+          playNote(f * 0.5, 'sine', now + (i * 0.11), 0.3, 0.15);
+        });
+      } else if (t === 'pirate') {
+        const melody = [
+          {f: 293.66, d: 0.2}, {f: 349.23, d: 0.2}, {f: 440.00, d: 0.2}, 
+          {f: 587.33, d: 0.35}, {f: 523.25, d: 0.2}, {f: 440.00, d: 0.2}, 
+          {f: 349.23, d: 0.2}, {f: 293.66, d: 0.2}, {f: 440.00, d: 0.3}, {f: 587.33, d: 0.6}
+        ];
+        let time = 0;
+        melody.forEach(n => {
+          playNote(n.f, 'square', now + time, n.d, 0.25);
+          time += n.d * 0.9;
+        });
+      } else if (t === 'dino') {
+        const notes = [130.81, 164.81, 196.00, 261.63, 329.63, 392.00];
+        notes.forEach((f, i) => {
+          playNote(f, 'sawtooth', now + (i * 0.16), 0.4, 0.3);
+          playNote(f / 2, 'triangle', now + (i * 0.16), 0.4, 0.25);
+        });
+      } else if (t === 'superhero') {
+        const melody = [
+          {f: 261.63, d: 0.15}, {f: 261.63, d: 0.15}, {f: 261.63, d: 0.15},
+          {f: 349.23, d: 0.35}, {f: 440.00, d: 0.35}, {f: 523.25, d: 0.6}
+        ];
+        let time = 0;
+        melody.forEach(n => {
+          playNote(n.f, 'triangle', now + time, n.d, 0.3);
+          playNote(n.f * 1.25, 'sine', now + time, n.d, 0.15);
+          time += n.d * 0.95;
+        });
+      } else if (t === 'racing') {
+        playNote(120, 'sawtooth', now, 0.5, 0.3, 600);
+        const notes = [329.63, 392.00, 493.88, 659.25, 783.99, 987.77];
+        notes.forEach((f, i) => {
+          playNote(f, 'sawtooth', now + 0.4 + (i * 0.1), 0.25, 0.2);
+        });
+      } else if (t === 'ocean') {
+        const notes = [392.00, 523.25, 659.25, 783.99, 880.00, 1046.50, 1318.51];
+        notes.forEach((f, i) => {
+          playNote(f, 'sine', now + (i * 0.12), 0.4, 0.2);
+        });
+      } else if (t === 'magic') {
+        const notes = [659.25, 783.99, 987.77, 1174.66, 1396.91, 1567.98, 1760.00, 2093.00];
+        notes.forEach((f, i) => {
+          playNote(f, 'sine', now + (i * 0.08), 0.35, 0.18);
+        });
+      } else if (t === 'agent') {
+        const melody = [
+          {f: 329.63, d: 0.2}, {f: 392.00, d: 0.2}, {f: 440.00, d: 0.2},
+          {f: 466.16, d: 0.2}, {f: 493.88, d: 0.35}, {f: 440.00, d: 0.2}, {f: 329.63, d: 0.5}
+        ];
+        let time = 0;
+        melody.forEach(n => {
+          playNote(n.f, 'square', now + time, n.d, 0.22);
+          time += n.d * 0.9;
+        });
+      } else if (t === 'arcade') {
+        const melody = [
+          {f: 261.63, d: 0.1}, {f: 329.63, d: 0.1}, {f: 392.00, d: 0.1},
+          {f: 523.25, d: 0.15}, {f: 659.25, d: 0.15}, {f: 783.99, d: 0.15}, {f: 1046.50, d: 0.4}
+        ];
+        let time = 0;
+        melody.forEach(n => {
+          playNote(n.f, 'square', now + time, n.d, 0.22);
+          time += n.d * 0.95;
+        });
+      } else if (t === 'jungle') {
+        const melody = [
+          {f: 220.00, d: 0.18}, {f: 277.18, d: 0.18}, {f: 329.63, d: 0.18},
+          {f: 440.00, d: 0.25}, {f: 554.37, d: 0.25}, {f: 659.25, d: 0.5}
+        ];
+        let time = 0;
+        melody.forEach(n => {
+          playNote(n.f, 'triangle', now + time, n.d, 0.3);
+          time += n.d * 0.9;
+        });
+      } else {
+        [523.25, 659.25, 783.99, 1046.50].forEach((f, i) => playNote(f, 'triangle', now + (i * 0.12), 0.3, 0.2));
       }
     }
 
-    // DATA & CLOUD ENGINE
     function loadData() {
       const stored = localStorage.getItem('morning_quest_data');
       if (stored) {
@@ -635,6 +881,11 @@
         } catch(e) { console.error(e); }
       }
 
+      if (appData.pinEnabled === undefined) appData.pinEnabled = false;
+      if (!appData.pin) appData.pin = "4865";
+      if (!appData.huntSubtitle) appData.huntSubtitle = "Ready for school? Start your quest timer!";
+      if (!appData.huntStartBtnText) appData.huntStartBtnText = "START MORNING HUNT";
+      if (!appData.completionMsgTemplate) appData.completionMsgTemplate = "You unlocked {score} {unit} for {goal}! {target}";
       if (!appData.prizeEmoji) appData.prizeEmoji = "🥕";
       if (!appData.targetEmoji) appData.targetEmoji = "🐴";
       if (!appData.prizeName) appData.prizeName = "Feed the Horse";
@@ -708,12 +959,11 @@
         .catch(() => {});
     }
 
-    // THEME ENGINE
     function applyTheme(themeKey) {
       document.body.className = `theme-${themeKey} min-h-screen pb-12 transition-colors duration-500`;
-      const emojis = { space: "🚀", pirate: "🏴‍☠️", dino: "🦖", superhero: "🦸", racing: "🏎️", ocean: "🌊", magic: "🏰", agent: "🕵️", arcade: "👾", jungle: "🐾" };
-      document.getElementById('header-emoji').innerText = emojis[themeKey] || "🚀";
+      document.getElementById('header-emoji').innerText = THEME_EMOJIS[themeKey] || "🚀";
       document.getElementById('theme-select').value = themeKey;
+      updateTimerUI();
     }
 
     function changeTheme(themeKey) {
@@ -724,6 +974,18 @@
 
     function saveTargetTime(val) {
       appData.targetTime = val;
+      saveData();
+      updateTimerUI();
+    }
+
+    function saveStartTextConfig() {
+      const sub = document.getElementById('hunt-subtitle-input').value.trim();
+      const btn = document.getElementById('hunt-btn-text-input').value.trim();
+      const comp = document.getElementById('completion-msg-input').value.trim();
+      
+      appData.huntSubtitle = sub || "Ready for school? Start your quest timer!";
+      appData.huntStartBtnText = btn || "START MORNING HUNT";
+      appData.completionMsgTemplate = comp || "You unlocked {score} {unit} for {goal}! {target}";
       saveData();
       updateTimerUI();
     }
@@ -742,7 +1004,22 @@
       updateTimerUI();
     }
 
-    // BUTTON STYLES PROVIDER
+    function togglePinProtection(enabled) {
+      appData.pinEnabled = enabled;
+      const container = document.getElementById('pin-input-container');
+      if (container) {
+        if (enabled) container.classList.remove('hidden');
+        else container.classList.add('hidden');
+      }
+      saveData();
+    }
+
+    function savePinCode(val) {
+      const cleaned = val.trim();
+      appData.pin = cleaned.length === 4 ? cleaned : "4865";
+      saveData();
+    }
+
     function getKidBtnStyle(colorKey, isDone) {
       if (isDone) {
         return "bg-green-500/20 text-green-400 border border-green-500/40 px-3 py-1.5 rounded-xl font-black text-sm";
@@ -761,7 +1038,6 @@
       return `${base} font-black text-base px-3.5 py-1.5 rounded-xl shadow-md active:scale-95 transition`;
     }
 
-    // RENDER TASKS DYNAMICALLY
     function renderTaskList() {
       const container = document.getElementById('task-list-container');
       if (!container) return;
@@ -837,10 +1113,13 @@
         updateTimerUI();
       }
 
-      openPinModalForTask(taskId, kidId);
+      if (appData.pinEnabled) {
+        openPinModalForTask(taskId, kidId);
+      } else {
+        approvePendingTask(taskId, kidId);
+      }
     }
 
-    // PIN MODAL ENGINE
     function openPinModalForTask(taskId, kidId) {
       pinMode = 'TASK';
       pendingTaskId = taskId;
@@ -852,13 +1131,18 @@
     }
 
     function openParentModal() {
-      pinMode = 'SETTINGS';
-      pendingTaskId = null;
-      pendingKidId = null;
-      pinBuffer = "";
-      updatePinDisplay();
-      document.getElementById('pin-modal-subtitle').innerText = "Enter PIN for Parent Settings";
-      document.getElementById('pin-modal').classList.remove('hidden');
+      if (appData.pinEnabled) {
+        pinMode = 'SETTINGS';
+        pendingTaskId = null;
+        pendingKidId = null;
+        pinBuffer = "";
+        updatePinDisplay();
+        document.getElementById('pin-modal-subtitle').innerText = "Enter PIN for Parent Settings";
+        document.getElementById('pin-modal').classList.remove('hidden');
+      } else {
+        renderParentEditor();
+        document.getElementById('parent-modal').classList.remove('hidden');
+      }
     }
 
     function closePinModal() {
@@ -925,7 +1209,6 @@
       }
     }
 
-    // HUNT MANAGEMENT
     function startMorningHunt() {
       appData.tasks.forEach(t => { t.completions = {}; });
       appData.huntStartTime = new Date().toISOString();
@@ -999,6 +1282,16 @@
       return Math.max(0, Math.floor(diffMs / 60000));
     }
 
+    function formatCompletionMessage(score, unit, goal, target, start) {
+      const template = appData.completionMsgTemplate || "You unlocked {score} {unit} for {goal}! {target}";
+      return template
+        .replace(/\{score\}/g, score)
+        .replace(/\{unit\}/g, unit)
+        .replace(/\{goal\}/g, goal)
+        .replace(/\{target\}/g, target)
+        .replace(/\{start\}/g, start);
+    }
+
     function updateTimerUI() {
       const notStarted = document.getElementById('hunt-not-started');
       const inProgress = document.getElementById('hunt-in-progress');
@@ -1006,10 +1299,16 @@
 
       if (!notStarted || !inProgress || !completed) return;
 
+      const currentThemeEmoji = THEME_EMOJIS[appData.activeTheme] || "🚀";
       const pEmoji = appData.prizeEmoji || "🥕";
       const tEmoji = appData.targetEmoji || "🐴";
       const pName = appData.prizeName || "Feed the Horse";
       const pUnit = appData.prizeUnit || "Carrots";
+      const subtitle = appData.huntSubtitle || "Ready for school? Start your quest timer!";
+      const btnText = appData.huntStartBtnText || "START MORNING HUNT";
+
+      document.getElementById('hunt-subtitle-disp').innerText = subtitle;
+      document.getElementById('start-hunt-btn').innerText = `${currentThemeEmoji} ${btnText}`;
 
       if (!appData.huntStartTime) {
         notStarted.classList.remove('hidden');
@@ -1030,7 +1329,7 @@
         inProgress.classList.add('hidden');
         completed.classList.remove('hidden');
         const bonus = calculateBonusPlayTime();
-        document.getElementById('hunt-completed-summary').innerText = `You unlocked ${bonus} ${pUnit} for ${pName}! ${tEmoji}`;
+        document.getElementById('hunt-completed-summary').innerText = formatCompletionMessage(bonus, pUnit, pName, tEmoji, pEmoji);
       } else {
         inProgress.classList.remove('hidden');
         completed.classList.add('hidden');
@@ -1040,7 +1339,7 @@
         document.getElementById('elapsed-time-disp').innerText = `Duration: ${elapsedMins}m`;
 
         const bonus = calculateBonusPlayTime();
-        document.getElementById('time-bank-disp').innerHTML = `${pEmoji} ${pName}: <span class="text-green-400">${bonus} ${pUnit}</span> ${tEmoji}`;
+        document.getElementById('time-bank-disp').innerHTML = `<span class="flip-x">${pEmoji}</span> ${pName}: <span class="text-green-400">${bonus} ${pUnit}</span> ${tEmoji}`;
         
         const totalButtons = appData.tasks.length * kids.length;
         let doneCount = 0;
@@ -1055,8 +1354,11 @@
 
         const barStart = document.getElementById('bar-start-emoji');
         const barTarget = document.getElementById('bar-target-emoji');
+        const barRider = document.getElementById('bar-rider-emoji');
+
         if (barStart) barStart.innerText = pEmoji;
         if (barTarget) barTarget.innerText = tEmoji;
+        if (barRider) barRider.innerText = pEmoji;
       }
 
       document.getElementById('target-time-disp').innerText = format12Hour(appData.targetTime);
@@ -1064,6 +1366,7 @@
 
     function triggerPlayTimeCelebration() {
       playVictorySong();
+      confetti({ particleCount: 100, spread: 80, origin: { y: 0.5 } });
       const container = document.getElementById('fireworks-container');
       if (!fxInstance) {
         fxInstance = new Fireworks.default(container, {
@@ -1074,7 +1377,6 @@
       setTimeout(() => fxInstance.stop(), 8000);
     }
 
-    // PARENT EDITOR & TASK REORDERING
     function closeParentModal() {
       document.getElementById('parent-modal').classList.add('hidden');
       renderTaskList();
@@ -1140,8 +1442,21 @@
     }
 
     function renderParentEditor() {
+      const toggle = document.getElementById('pin-enabled-toggle');
+      if (toggle) toggle.checked = appData.pinEnabled || false;
+
+      const pinContainer = document.getElementById('pin-input-container');
+      if (pinContainer) {
+        if (appData.pinEnabled) pinContainer.classList.remove('hidden');
+        else pinContainer.classList.add('hidden');
+      }
+
+      document.getElementById('pin-code-input').value = appData.pin || "4865";
       document.getElementById('target-time-input').value = appData.targetTime;
       document.getElementById('cloud-sync-url-input').value = appData.cloudSyncUrl || "";
+      document.getElementById('hunt-subtitle-input').value = appData.huntSubtitle || "Ready for school? Start your quest timer!";
+      document.getElementById('hunt-btn-text-input').value = appData.huntStartBtnText || "START MORNING HUNT";
+      document.getElementById('completion-msg-input').value = appData.completionMsgTemplate || "You unlocked {score} {unit} for {goal}! {target}";
       document.getElementById('prize-emoji-input').value = appData.prizeEmoji || "🥕";
       document.getElementById('target-emoji-input').value = appData.targetEmoji || "🐴";
       document.getElementById('prize-name-input').value = appData.prizeName || "Feed the Horse";
@@ -1166,8 +1481,8 @@
           row.className = "flex items-center space-x-2 bg-gray-800 p-2 rounded-xl border border-gray-700 text-xs";
           row.innerHTML = `
             <span class="font-bold text-gray-400 w-12">Kid ${idx+1}:</span>
-            <input type="text" value="${k.label}" maxlength="4" placeholder="Label" onchange="updateKidLabel('${k.id}', this.value)" class="w-14 bg-gray-900 border border-gray-700 rounded-lg p-1.5 text-center font-bold text-white text-xs" />
-            <select onchange="updateKidColor('${k.id}', this.value)" class="flex-1 bg-gray-900 border border-gray-700 rounded-lg p-1.5 text-xs text-white font-bold">
+            <input type="text" value="${k.label}" maxlength="4" placeholder="Label" onchange="updateKidLabel('${k.id}', this.value)" class="w-14 bg-gray-900 border border-gray-700 rounded-lg p-1.5 text-center font-bold text-white text-xs focus:border-purple-500 focus:outline-none" />
+            <select onchange="updateKidColor('${k.id}', this.value)" class="flex-1 bg-gray-900 border border-gray-700 rounded-lg p-1.5 text-xs text-white font-bold focus:border-purple-500 focus:outline-none">
               <option value="blue" ${k.color==='blue'?'selected':''}>🔵 Blue</option>
               <option value="rainbow" ${k.color==='rainbow'?'selected':''}>🌈 Rainbow</option>
               <option value="red" ${k.color==='red'?'selected':''}>🔴 Red</option>
@@ -1208,10 +1523,10 @@
             <button onclick="moveTaskUp(${task.id})" class="text-[10px] bg-gray-700 hover:bg-gray-600 px-1 py-0.5 rounded leading-none ${isFirst ? 'opacity-30 cursor-not-allowed' : ''}" ${isFirst ? 'disabled' : ''}>▲</button>
             <button onclick="moveTaskDown(${task.id})" class="text-[10px] bg-gray-700 hover:bg-gray-600 px-1 py-0.5 rounded leading-none ${isLast ? 'opacity-30 cursor-not-allowed' : ''}" ${isLast ? 'disabled' : ''}>▼</button>
           </div>
-          <input type="text" value="${task.emoji}" onchange="updateTaskEmoji(${task.id}, this.value)" class="w-8 text-center bg-gray-900 border border-gray-700 rounded-lg p-1 text-sm" />
-          <input type="text" value="${task.title}" onchange="updateTaskTitle(${task.id}, this.value)" class="flex-1 bg-gray-900 border border-gray-700 rounded-lg p-1 text-xs text-white font-bold min-w-0" />
+          <input type="text" value="${task.emoji}" onchange="updateTaskEmoji(${task.id}, this.value)" class="w-8 text-center bg-gray-900 border border-gray-700 rounded-lg p-1 text-sm focus:border-purple-500 focus:outline-none" />
+          <input type="text" value="${task.title}" onchange="updateTaskTitle(${task.id}, this.value)" class="flex-1 bg-gray-900 border border-gray-700 rounded-lg p-1 text-xs text-white font-bold min-w-0 focus:border-purple-500 focus:outline-none" />
           ${kidTogglesHtml}
-          <button onclick="deleteTask(${task.id})" class="text-red-400 p-1">🗑️</button>
+          <button onclick="deleteTask(${task.id})" class="text-red-400 hover:text-red-300 p-1">🗑️</button>
         `;
         editor.appendChild(row);
       });
@@ -1251,7 +1566,6 @@
       renderParentEditor();
     }
 
-    // SCOREBOARD MODAL
     function openScoreboardModal() {
       const container = document.getElementById('scoreboard-days-list');
       if (!container) return;
@@ -1273,7 +1587,7 @@
         row.className = "flex justify-between items-center p-2 rounded-lg bg-gray-800 text-xs";
         row.innerHTML = `
           <span class="font-bold text-gray-300">${d}</span>
-          <span class="font-bold ${mins > 0 ? 'text-green-400' : 'text-gray-500'}">${pEmoji} ${mins} ${pUnit} ${tEmoji}</span>
+          <span class="font-bold ${mins > 0 ? 'text-green-400' : 'text-gray-500'}"><span class="flip-x">${pEmoji}</span> ${mins} ${pUnit} ${tEmoji}</span>
         `;
         container.appendChild(row);
       });
@@ -1286,7 +1600,6 @@
       document.getElementById('scoreboard-modal').classList.add('hidden');
     }
 
-    // UTILS
     function format12Hour(timeStr) {
       if (!timeStr) return "8:00 AM";
       let [h, m] = timeStr.split(':').map(Number);
@@ -1323,7 +1636,6 @@
       }
     }
 
-    // INIT
     window.onload = () => {
       loadData();
       setInterval(updateTimerUI, 30000);
