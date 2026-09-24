@@ -363,7 +363,7 @@
       <!-- EDIT TASKS -->
       <div class="mb-5">
         <div class="flex justify-between items-center mb-2">
-          <label class="block text-xs font-bold text-gray-400">EDIT TASKS</label>
+          <label class="block text-xs font-bold text-gray-400">EDIT TASKS (L / R COMPLETIONS)</label>
           <button onclick="addNewTask()" class="text-xs bg-green-600 text-white font-bold px-3 py-1 rounded-lg">
             + Add Task
           </button>
@@ -443,23 +443,28 @@
       huntEndTime: null,
       weeklyStats: { Mon: 0, Tue: 0, Wed: 0, Thu: 0, Fri: 0 },
       tasks: [
-        { id: 1, title: "Make Bed", emoji: "🛏️", done: false },
-        { id: 2, title: "Put On Clothes", emoji: "👕", done: false },
-        { id: 3, title: "Eat Breakfast", emoji: "🥣", done: false },
-        { id: 4, title: "Brush Teeth", emoji: "🪥", done: false },
-        { id: 5, title: "Put On Shoes & Backpack", emoji: "🎒", done: false }
+        { id: 1, title: "Make Bed", emoji: "🛏️", doneLeft: false, doneRight: false },
+        { id: 2, title: "Put On Clothes", emoji: "👕", doneLeft: false, doneRight: false },
+        { id: 3, title: "Eat Breakfast", emoji: "🥣", doneLeft: false, doneRight: false },
+        { id: 4, title: "Brush Teeth", emoji: "🪥", doneLeft: false, doneRight: false },
+        { id: 5, title: "Put On Shoes & Backpack", emoji: "🎒", doneLeft: false, doneRight: false }
       ]
     };
 
     let appData = JSON.parse(JSON.stringify(DEFAULT_CONFIG));
     let pinMode = null; // 'TASK' or 'SETTINGS'
     let pendingTaskId = null;
+    let pendingTaskSide = null; // 'left' or 'right'
     let pinBuffer = "";
     let fxInstance = null;
 
-    // HELPER: STRICT BOOLEAN TASK CHECK
-    function isTaskDone(task) {
-      return task && (task.done === true || task.done === "true" || task.done === 1);
+    // HELPERS: STRICT DUAL-SIDE TASK CHECKS
+    function isTaskDoneLeft(task) {
+      return task && (task.doneLeft === true || task.doneLeft === "true" || task.doneLeft === 1);
+    }
+
+    function isTaskDoneRight(task) {
+      return task && (task.doneRight === true || task.doneRight === "true" || task.doneRight === 1);
     }
 
     // AUDIO SYNTHESIZER
@@ -532,7 +537,10 @@
       if (stored) {
         try { 
           appData = Object.assign({}, DEFAULT_CONFIG, JSON.parse(stored));
-          appData.tasks.forEach(t => { t.done = isTaskDone(t); });
+          appData.tasks.forEach(t => {
+            t.doneLeft = isTaskDoneLeft(t);
+            t.doneRight = isTaskDoneRight(t);
+          });
         } catch(e) { console.error(e); }
       }
       applyTheme(appData.activeTheme);
@@ -571,7 +579,10 @@
         .then(data => {
           if (data && Array.isArray(data.tasks)) {
             appData = Object.assign({}, DEFAULT_CONFIG, data);
-            appData.tasks.forEach(t => { t.done = isTaskDone(t); });
+            appData.tasks.forEach(t => {
+              t.doneLeft = isTaskDoneLeft(t);
+              t.doneRight = isTaskDoneRight(t);
+            });
             localStorage.setItem('morning_quest_data', JSON.stringify(appData));
             applyTheme(appData.activeTheme);
             renderTaskList();
@@ -601,26 +612,35 @@
       updateTimerUI();
     }
 
-    // RENDER TASKS
+    // RENDER TASKS WITH DUAL BUTTONS
     function renderTaskList() {
       const container = document.getElementById('task-list-container');
       if (!container) return;
       container.innerHTML = "";
 
       appData.tasks.forEach((task) => {
-        const done = isTaskDone(task);
+        const doneL = isTaskDoneLeft(task);
+        const doneR = isTaskDoneRight(task);
+        const bothDone = doneL && doneR;
+
         const card = document.createElement('div');
-        card.className = `card-theme p-4 flex items-center justify-between transition-all ${done ? 'opacity-60 scale-[0.98]' : ''}`;
+        card.className = `card-theme p-3 flex items-center justify-between space-x-2 transition-all ${bothDone ? 'opacity-60 scale-[0.98]' : ''}`;
         
         card.innerHTML = `
-          <div class="flex items-center space-x-3">
-            <span class="text-3xl">${task.emoji}</span>
-            <div>
-              <div class="font-bold text-lg ${done ? 'line-through text-green-400' : ''}">${task.title}</div>
-            </div>
+          <!-- LEFT KID BUTTON -->
+          <button onclick="handleTaskTap(${task.id}, 'left')" class="px-3 py-2 rounded-xl font-bold text-xs ${doneL ? 'bg-green-500/20 text-green-400 border border-green-500/40' : 'btn-accent shadow-md active:scale-95'}">
+            ${doneL ? '✅ Done' : '◀ Did It!'}
+          </button>
+
+          <!-- CENTER EMOJI & TITLE -->
+          <div class="flex items-center space-x-2 flex-1 justify-center text-center">
+            <span class="text-2xl">${task.emoji}</span>
+            <span class="font-bold text-base leading-tight ${bothDone ? 'line-through text-green-400' : ''}">${task.title}</span>
           </div>
-          <button onclick="handleTaskTap(${task.id})" class="px-4 py-2 rounded-xl font-bold text-sm ${done ? 'bg-green-500/20 text-green-400 border border-green-500/40' : 'btn-accent shadow-md active:scale-95'}">
-            ${done ? '✅ Done!' : 'I Did It! ▶'}
+
+          <!-- RIGHT KID BUTTON -->
+          <button onclick="handleTaskTap(${task.id}, 'right')" class="px-3 py-2 rounded-xl font-bold text-xs ${doneR ? 'bg-green-500/20 text-green-400 border border-green-500/40' : 'btn-accent shadow-md active:scale-95'}">
+            ${doneR ? '✅ Done' : 'Did It! ▶'}
           </button>
         `;
         container.appendChild(card);
@@ -629,12 +649,13 @@
       document.getElementById('streak-counter').innerText = `${appData.streak} Days`;
     }
 
-    function handleTaskTap(taskId) {
+    function handleTaskTap(taskId, side) {
       const task = appData.tasks.find(t => t.id === taskId);
       if (!task) return;
 
-      if (isTaskDone(task)) {
-        showToast("⭐ Already completed!");
+      const isDone = side === 'left' ? isTaskDoneLeft(task) : isTaskDoneRight(task);
+      if (isDone) {
+        showToast("⭐ Task side already completed!");
         return;
       }
 
@@ -644,13 +665,14 @@
         updateTimerUI();
       }
 
-      openPinModalForTask(taskId);
+      openPinModalForTask(taskId, side);
     }
 
     // PIN MODAL ENGINE
-    function openPinModalForTask(taskId) {
+    function openPinModalForTask(taskId, side) {
       pinMode = 'TASK';
       pendingTaskId = taskId;
+      pendingTaskSide = side;
       pinBuffer = "";
       updatePinDisplay();
       document.getElementById('pin-modal-subtitle').innerText = "Enter PIN to approve task completion";
@@ -660,6 +682,7 @@
     function openParentModal() {
       pinMode = 'SETTINGS';
       pendingTaskId = null;
+      pendingTaskSide = null;
       pinBuffer = "";
       updatePinDisplay();
       document.getElementById('pin-modal-subtitle').innerText = "Enter PIN for Parent Settings";
@@ -670,7 +693,6 @@
       document.getElementById('pin-modal').classList.add('hidden');
       pinBuffer = "";
       pinMode = null;
-      // Note: pendingTaskId is cleared intentionally inside approvePendingTask or closePinModal
     }
 
     function updatePinDisplay() {
@@ -691,12 +713,14 @@
       if (pinBuffer.length === 4) {
         if (pinBuffer === appData.pin) {
           const currentMode = pinMode;
-          const targetTaskId = pendingTaskId; // Capture pending ID before closing modal!
+          const targetTaskId = pendingTaskId;
+          const targetSide = pendingTaskSide;
           closePinModal();
           pendingTaskId = null;
+          pendingTaskSide = null;
 
           if (currentMode === 'TASK') {
-            approvePendingTask(targetTaskId);
+            approvePendingTask(targetTaskId, targetSide);
           } else if (currentMode === 'SETTINGS') {
             renderParentEditor();
             document.getElementById('parent-modal').classList.remove('hidden');
@@ -714,11 +738,12 @@
       updatePinDisplay();
     }
 
-    function approvePendingTask(taskId) {
-      if (!taskId) return;
+    function approvePendingTask(taskId, side) {
+      if (!taskId || !side) return;
       const task = appData.tasks.find(t => t.id === taskId);
       if (task) {
-        task.done = true;
+        if (side === 'left') task.doneLeft = true;
+        if (side === 'right') task.doneRight = true;
         playSoundEffect('task');
         confetti({ particleCount: 50, spread: 70, origin: { y: 0.6 } });
         saveData();
@@ -730,7 +755,7 @@
 
     // HUNT MANAGEMENT
     function startMorningHunt() {
-      appData.tasks.forEach(t => { t.done = false; });
+      appData.tasks.forEach(t => { t.doneLeft = false; t.doneRight = false; t.done = false; });
       appData.huntStartTime = new Date().toISOString();
       appData.huntEndTime = null;
       saveData();
@@ -740,7 +765,7 @@
     }
 
     function resetMorningHunt() {
-      appData.tasks.forEach(t => { t.done = false; });
+      appData.tasks.forEach(t => { t.doneLeft = false; t.doneRight = false; t.done = false; });
       appData.huntStartTime = null;
       appData.huntEndTime = null;
       saveData();
@@ -750,7 +775,7 @@
     }
 
     function checkHuntCompletion() {
-      const allDone = appData.tasks.length > 0 && appData.tasks.every(t => isTaskDone(t));
+      const allDone = appData.tasks.length > 0 && appData.tasks.every(t => isTaskDoneLeft(t) && isTaskDoneRight(t));
       if (allDone && !appData.huntEndTime) {
         appData.huntEndTime = new Date().toISOString();
         
@@ -801,7 +826,7 @@
         return;
       }
 
-      const allDone = appData.tasks.length > 0 && appData.tasks.every(t => isTaskDone(t));
+      const allDone = appData.tasks.length > 0 && appData.tasks.every(t => isTaskDoneLeft(t) && isTaskDoneRight(t));
 
       notStarted.classList.add('hidden');
 
@@ -820,8 +845,10 @@
         const bonus = calculateBonusPlayTime();
         document.getElementById('time-bank-disp').innerHTML = `⏱️ Play Time Saved: <span class="text-green-400">${bonus} Mins</span>`;
         
-        const doneCount = appData.tasks.filter(t => isTaskDone(t)).length;
-        const pct = Math.round((doneCount / appData.tasks.length) * 100);
+        // Progress bar accounts for total buttons (tasks * 2)
+        const totalButtons = appData.tasks.length * 2;
+        const doneCount = appData.tasks.reduce((acc, t) => acc + (isTaskDoneLeft(t) ? 1 : 0) + (isTaskDoneRight(t) ? 1 : 0), 0);
+        const pct = Math.round((doneCount / totalButtons) * 100);
         document.getElementById('progress-bar-fill').style.width = `${pct}%`;
       }
 
@@ -855,16 +882,20 @@
       editor.innerHTML = "";
 
       appData.tasks.forEach((task) => {
-        const done = isTaskDone(task);
+        const doneL = isTaskDoneLeft(task);
+        const doneR = isTaskDoneRight(task);
         const row = document.createElement('div');
-        row.className = "flex items-center space-x-2 bg-gray-800 p-2 rounded-xl border border-gray-700";
+        row.className = "flex items-center space-x-1.5 bg-gray-800 p-2 rounded-xl border border-gray-700 text-xs";
         row.innerHTML = `
-          <input type="text" value="${task.emoji}" onchange="updateTaskEmoji(${task.id}, this.value)" class="w-10 text-center bg-gray-900 border border-gray-700 rounded-lg p-2 text-sm" />
-          <input type="text" value="${task.title}" onchange="updateTaskTitle(${task.id}, this.value)" class="flex-1 bg-gray-900 border border-gray-700 rounded-lg p-2 text-sm text-white font-bold" />
-          <button onclick="toggleTaskDoneParent(${task.id})" class="p-2 text-xs font-bold rounded-lg ${done ? 'bg-green-600 text-white' : 'bg-gray-700 text-gray-400'}">
-            ${done ? '✓' : '◯'}
+          <input type="text" value="${task.emoji}" onchange="updateTaskEmoji(${task.id}, this.value)" class="w-8 text-center bg-gray-900 border border-gray-700 rounded-lg p-1 text-sm" />
+          <input type="text" value="${task.title}" onchange="updateTaskTitle(${task.id}, this.value)" class="flex-1 bg-gray-900 border border-gray-700 rounded-lg p-1 text-xs text-white font-bold" />
+          <button onclick="toggleTaskDoneParent(${task.id}, 'left')" class="p-1.5 font-bold rounded-lg ${doneL ? 'bg-green-600 text-white' : 'bg-gray-700 text-gray-400'}">
+            L:${doneL ? '✓' : '◯'}
           </button>
-          <button onclick="deleteTask(${task.id})" class="text-red-400 p-2 text-sm">🗑️</button>
+          <button onclick="toggleTaskDoneParent(${task.id}, 'right')" class="p-1.5 font-bold rounded-lg ${doneR ? 'bg-green-600 text-white' : 'bg-gray-700 text-gray-400'}">
+            R:${doneR ? '✓' : '◯'}
+          </button>
+          <button onclick="deleteTask(${task.id})" class="text-red-400 p-1">🗑️</button>
         `;
         editor.appendChild(row);
       });
@@ -880,10 +911,11 @@
       if (task) { task.title = val; saveData(); }
     }
 
-    function toggleTaskDoneParent(id) {
+    function toggleTaskDoneParent(id, side) {
       const task = appData.tasks.find(t => t.id === id);
       if (task) {
-        task.done = !isTaskDone(task);
+        if (side === 'left') task.doneLeft = !isTaskDoneLeft(task);
+        if (side === 'right') task.doneRight = !isTaskDoneRight(task);
         checkHuntCompletion();
         saveData();
         renderParentEditor();
@@ -892,7 +924,7 @@
 
     function addNewTask() {
       const newId = Date.now();
-      appData.tasks.push({ id: newId, title: "New Task", emoji: "⭐", done: false });
+      appData.tasks.push({ id: newId, title: "New Task", emoji: "⭐", doneLeft: false, doneRight: false });
       saveData();
       renderParentEditor();
     }
@@ -958,7 +990,10 @@
       if (str) {
         try {
           appData = JSON.parse(str);
-          appData.tasks.forEach(t => { t.done = isTaskDone(t); });
+          appData.tasks.forEach(t => {
+            t.doneLeft = isTaskDoneLeft(t);
+            t.doneRight = isTaskDoneRight(t);
+          });
           saveData();
           applyTheme(appData.activeTheme);
           closeParentModal();
