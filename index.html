@@ -670,7 +670,7 @@
       document.getElementById('pin-modal').classList.add('hidden');
       pinBuffer = "";
       pinMode = null;
-      pendingTaskId = null;
+      // Note: pendingTaskId is cleared intentionally inside approvePendingTask or closePinModal
     }
 
     function updatePinDisplay() {
@@ -691,9 +691,12 @@
       if (pinBuffer.length === 4) {
         if (pinBuffer === appData.pin) {
           const currentMode = pinMode;
+          const targetTaskId = pendingTaskId; // Capture pending ID before closing modal!
           closePinModal();
+          pendingTaskId = null;
+
           if (currentMode === 'TASK') {
-            approvePendingTask();
+            approvePendingTask(targetTaskId);
           } else if (currentMode === 'SETTINGS') {
             renderParentEditor();
             document.getElementById('parent-modal').classList.remove('hidden');
@@ -711,9 +714,9 @@
       updatePinDisplay();
     }
 
-    function approvePendingTask() {
-      if (!pendingTaskId) return;
-      const task = appData.tasks.find(t => t.id === pendingTaskId);
+    function approvePendingTask(taskId) {
+      if (!taskId) return;
+      const task = appData.tasks.find(t => t.id === taskId);
       if (task) {
         task.done = true;
         playSoundEffect('task');
