@@ -458,6 +458,11 @@
     let pinBuffer = "";
     let fxInstance = null;
 
+    // HELPER: STRICT BOOLEAN TASK CHECK
+    function isTaskDone(task) {
+      return task && (task.done === true || task.done === "true" || task.done === 1);
+    }
+
     // AUDIO SYNTHESIZER
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
@@ -526,8 +531,10 @@
     function loadData() {
       const stored = localStorage.getItem('morning_quest_data');
       if (stored) {
-        try { appData = Object.assign({}, DEFAULT_CONFIG, JSON.parse(stored)); } 
-        catch(e) { console.error(e); }
+        try { 
+          appData = Object.assign({}, DEFAULT_CONFIG, JSON.parse(stored));
+          appData.tasks.forEach(t => { t.done = isTaskDone(t); });
+        } catch(e) { console.error(e); }
       }
       applyTheme(appData.activeTheme);
       renderTaskList();
@@ -569,8 +576,9 @@
       fetch(appData.cloudSyncUrl)
         .then(res => res.json())
         .then(data => {
-          if (data && data.tasks) {
+          if (data && Array.isArray(data.tasks)) {
             appData = Object.assign({}, DEFAULT_CONFIG, data);
+            appData.tasks.forEach(t => { t.done = isTaskDone(t); });
             localStorage.setItem('morning_quest_data', JSON.stringify(appData));
             applyTheme(appData.activeTheme);
             renderTaskList();
@@ -606,21 +614,23 @@
     // RENDER TASKS
     function renderTaskList() {
       const container = document.getElementById('task-list-container');
+      if (!container) return;
       container.innerHTML = "";
 
       appData.tasks.forEach((task) => {
+        const done = isTaskDone(task);
         const card = document.createElement('div');
-        card.className = `card-theme p-4 flex items-center justify-between transition-all ${task.done ? 'opacity-60 scale-[0.98]' : ''}`;
+        card.className = `card-theme p-4 flex items-center justify-between transition-all ${done ? 'opacity-60 scale-[0.98]' : ''}`;
         
         card.innerHTML = `
           <div class="flex items-center space-x-3">
             <span class="text-3xl">${task.emoji}</span>
             <div>
-              <div class="font-bold text-lg ${task.done ? 'line-through text-green-400' : ''}">${task.title}</div>
+              <div class="font-bold text-lg ${done ? 'line-through text-green-400' : ''}">${task.title}</div>
             </div>
           </div>
-          <button onclick="handleTaskTap(${task.id})" class="px-4 py-2 rounded-xl font-bold text-sm ${task.done ? 'bg-green-500/20 text-green-400 border border-green-500/40' : 'btn-accent shadow-md active:scale-95'}">
-            ${task.done ? '✅ Done!' : 'I Did It! ▶'}
+          <button onclick="handleTaskTap(${task.id})" class="px-4 py-2 rounded-xl font-bold text-sm ${done ? 'bg-green-500/20 text-green-400 border border-green-500/40' : 'btn-accent shadow-md active:scale-95'}">
+            ${done ? '✅ Done!' : 'I Did It! ▶'}
           </button>
         `;
         container.appendChild(card);
@@ -633,7 +643,7 @@
       const task = appData.tasks.find(t => t.id === taskId);
       if (!task) return;
 
-      if (task.done) {
+      if (isTaskDone(task)) {
         showToast("⭐ Already completed!");
         return;
       }
@@ -727,7 +737,7 @@
 
     // HUNT MANAGEMENT
     function startMorningHunt() {
-      appData.tasks.forEach(t => t.done = false);
+      appData.tasks.forEach(t => { t.done = false; });
       appData.huntStartTime = new Date().toISOString();
       appData.huntEndTime = null;
       saveData();
@@ -737,7 +747,7 @@
     }
 
     function resetMorningHunt() {
-      appData.tasks.forEach(t => t.done = false);
+      appData.tasks.forEach(t => { t.done = false; });
       appData.huntStartTime = null;
       appData.huntEndTime = null;
       saveData();
@@ -747,7 +757,7 @@
     }
 
     function checkHuntCompletion() {
-      const allDone = appData.tasks.length > 0 && appData.tasks.every(t => t.done);
+      const allDone = appData.tasks.length > 0 && appData.tasks.every(t => isTaskDone(t));
       if (allDone && !appData.huntEndTime) {
         appData.huntEndTime = new Date().toISOString();
         
@@ -788,22 +798,28 @@
       const inProgress = document.getElementById('hunt-in-progress');
       const completed = document.getElementById('hunt-completed');
 
+      if (!notStarted || !inProgress || !completed) return;
+
       if (!appData.huntStartTime) {
         notStarted.classList.remove('hidden');
         inProgress.classList.add('hidden');
         completed.classList.add('hidden');
+        document.getElementById('target-time-disp').innerText = format12Hour(appData.targetTime);
         return;
       }
 
-      const allDone = appData.tasks.length > 0 && appData.tasks.every(t => t.done);
+      const allDone = appData.tasks.length > 0 && appData.tasks.every(t => isTaskDone(t));
 
-      notStarted.classList.toggle('hidden', !!appData.huntStartTime);
-      inProgress.classList.toggle('hidden', !appData.huntStartTime || allDone);
-      completed.classList.toggle('hidden', !allDone);
+      notStarted.classList.add('hidden');
 
       if (allDone) {
+        inProgress.classList.add('hidden');
+        completed.classList.remove('hidden');
         document.getElementById('final-bonus-mins').innerText = calculateBonusPlayTime();
       } else {
+        inProgress.classList.remove('hidden');
+        completed.classList.add('hidden');
+
         const start = new Date(appData.huntStartTime);
         const elapsedMins = Math.floor((new Date() - start) / 60000);
         document.getElementById('elapsed-time-disp').innerText = `Duration: ${elapsedMins}m`;
@@ -811,7 +827,7 @@
         const bonus = calculateBonusPlayTime();
         document.getElementById('time-bank-disp').innerHTML = `⏱️ Play Time Saved: <span class="text-green-400">${bonus} Mins</span>`;
         
-        const doneCount = appData.tasks.filter(t => t.done).length;
+        const doneCount = appData.tasks.filter(t => isTaskDone(t)).length;
         const pct = Math.round((doneCount / appData.tasks.length) * 100);
         document.getElementById('progress-bar-fill').style.width = `${pct}%`;
       }
@@ -842,16 +858,18 @@
       document.getElementById('target-time-input').value = appData.targetTime;
       document.getElementById('cloud-sync-url-input').value = appData.cloudSyncUrl || "";
       const editor = document.getElementById('parent-task-editor');
+      if (!editor) return;
       editor.innerHTML = "";
 
       appData.tasks.forEach((task) => {
+        const done = isTaskDone(task);
         const row = document.createElement('div');
         row.className = "flex items-center space-x-2 bg-gray-800 p-2 rounded-xl border border-gray-700";
         row.innerHTML = `
           <input type="text" value="${task.emoji}" onchange="updateTaskEmoji(${task.id}, this.value)" class="w-10 text-center bg-gray-900 border border-gray-700 rounded-lg p-2 text-sm" />
           <input type="text" value="${task.title}" onchange="updateTaskTitle(${task.id}, this.value)" class="flex-1 bg-gray-900 border border-gray-700 rounded-lg p-2 text-sm text-white font-bold" />
-          <button onclick="toggleTaskDoneParent(${task.id})" class="p-2 text-xs font-bold rounded-lg ${task.done ? 'bg-green-600 text-white' : 'bg-gray-700 text-gray-400'}">
-            ${task.done ? '✓' : '◯'}
+          <button onclick="toggleTaskDoneParent(${task.id})" class="p-2 text-xs font-bold rounded-lg ${done ? 'bg-green-600 text-white' : 'bg-gray-700 text-gray-400'}">
+            ${done ? '✓' : '◯'}
           </button>
           <button onclick="deleteTask(${task.id})" class="text-red-400 p-2 text-sm">🗑️</button>
         `;
@@ -872,7 +890,7 @@
     function toggleTaskDoneParent(id) {
       const task = appData.tasks.find(t => t.id === id);
       if (task) {
-        task.done = !task.done;
+        task.done = !isTaskDone(task);
         checkHuntCompletion();
         saveData();
         renderParentEditor();
@@ -895,6 +913,7 @@
     // SCOREBOARD MODAL
     function openScoreboardModal() {
       const container = document.getElementById('scoreboard-days-list');
+      if (!container) return;
       container.innerHTML = "";
       let total = 0;
       const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
@@ -946,6 +965,7 @@
       if (str) {
         try {
           appData = JSON.parse(str);
+          appData.tasks.forEach(t => { t.done = isTaskDone(t); });
           saveData();
           applyTheme(appData.activeTheme);
           closeParentModal();
