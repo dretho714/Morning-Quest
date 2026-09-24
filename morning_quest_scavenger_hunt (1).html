@@ -1,0 +1,1483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Morning Quest: Daily Scavenger Hunt</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Canvas Confetti Library -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Luckiest+Guy&family=Outfit:wght@600;800;900&family=Press+Start+2P&family=Permanent+Marker&display=swap" rel="stylesheet">
+
+    <style>
+        /* Base Root Variables */
+        :root {
+            --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+            --card-bg: rgba(30, 41, 59, 0.92);
+            --card-border: #38bdf8;
+            --text-primary: #f8fafc;
+            --text-accent: #38bdf8;
+            --button-bg: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+            --button-text: #ffffff;
+            --badge-bg: #0369a1;
+            --font-family: 'Fredoka', sans-serif;
+            --box-shadow: 0 10px 25px -5px rgba(56, 189, 248, 0.3);
+            --border-radius: 1.25rem;
+        }
+
+        /* 1. 🚀 Space Explorer Theme */
+        .theme-space {
+            --bg-gradient: radial-gradient(circle at top, #1e1b4b 0%, #090d16 100%);
+            --card-bg: rgba(15, 23, 42, 0.92);
+            --card-border: #06b6d4;
+            --text-primary: #f0f9ff;
+            --text-accent: #38bdf8;
+            --button-bg: linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%);
+            --badge-bg: #1e3a8a;
+            --font-family: 'Fredoka', sans-serif;
+            --box-shadow: 0 0 25px rgba(6, 182, 212, 0.4);
+            background-image: radial-gradient(rgba(255, 255, 255, 0.15) 1px, transparent 1px);
+            background-size: 24px 24px;
+        }
+
+        /* 2. 🏴‍☠️ Pirate Treasure Hunt Theme */
+        .theme-pirate {
+            --bg-gradient: linear-gradient(135deg, #3b1d11 0%, #1c0a04 100%);
+            --card-bg: rgba(254, 243, 199, 0.95);
+            --card-border: #b45309;
+            --text-primary: #451a03;
+            --text-accent: #b45309;
+            --button-bg: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+            --badge-bg: #78350f;
+            --font-family: 'Permanent Marker', cursive, sans-serif;
+            --box-shadow: 0 8px 20px rgba(180, 83, 9, 0.4);
+            background-image: repeating-linear-gradient(45deg, rgba(120, 53, 15, 0.1), rgba(120, 53, 15, 0.1) 10px, transparent 10px, transparent 20px);
+        }
+
+        /* 3. 🦖 Dino Safari Theme */
+        .theme-dino {
+            --bg-gradient: linear-gradient(135deg, #064e3b 0%, #022c22 100%);
+            --card-bg: rgba(6, 78, 59, 0.95);
+            --card-border: #34d399;
+            --text-primary: #ecfdf5;
+            --text-accent: #fbbf24;
+            --button-bg: linear-gradient(135deg, #059669 0%, #047857 100%);
+            --badge-bg: #065f46;
+            --font-family: 'Fredoka', sans-serif;
+            --box-shadow: 0 8px 20px rgba(52, 211, 153, 0.35);
+            background-image: radial-gradient(#059669 1.5px, transparent 1.5px);
+            background-size: 18px 18px;
+        }
+
+        /* 4. 🦸 Superhero Training Theme */
+        .theme-superhero {
+            --bg-gradient: linear-gradient(135deg, #b91c1c 0%, #1e1b4b 100%);
+            --card-bg: rgba(255, 255, 255, 0.96);
+            --card-border: #facc15;
+            --text-primary: #1e1b4b;
+            --text-accent: #dc2626;
+            --button-bg: linear-gradient(135deg, #dc2626 0%, #2563eb 100%);
+            --badge-bg: #2563eb;
+            --font-family: 'Luckiest Guy', cursive, sans-serif;
+            --box-shadow: 6px 6px 0px #facc15;
+            background-image: radial-gradient(rgba(250, 204, 21, 0.3) 2px, transparent 2px);
+            background-size: 14px 14px;
+        }
+
+        /* 5. 🏎️ Grand Prix Racing Theme */
+        .theme-racing {
+            --bg-gradient: linear-gradient(135deg, #18181b 0%, #09090b 100%);
+            --card-bg: rgba(39, 39, 42, 0.95);
+            --card-border: #ef4444;
+            --text-primary: #f4f4f5;
+            --text-accent: #facc15;
+            --button-bg: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%);
+            --badge-bg: #27272a;
+            --font-family: 'Outfit', sans-serif;
+            --box-shadow: 0 0 20px rgba(239, 68, 68, 0.5);
+            background-image: repeating-linear-gradient(0deg, #18181b, #18181b 10px, #09090b 10px, #09090b 20px);
+        }
+
+        /* 6. 🌊 Under the Sea Theme */
+        .theme-sea {
+            --bg-gradient: linear-gradient(135deg, #0c4a6e 0%, #082f49 100%);
+            --card-bg: rgba(14, 116, 144, 0.4);
+            --card-border: #22d3ee;
+            --text-primary: #f0fdf4;
+            --text-accent: #67e8f9;
+            --button-bg: linear-gradient(135deg, #0891b2 0%, #0e7490 100%);
+            --badge-bg: #155e75;
+            --font-family: 'Fredoka', sans-serif;
+            --box-shadow: 0 8px 20px rgba(34, 211, 238, 0.3);
+            background-image: radial-gradient(circle, rgba(103, 232, 249, 0.15) 10%, transparent 11%);
+            background-size: 30px 30px;
+        }
+
+        /* 7. 🏰 Magic Kingdom Theme */
+        .theme-magic {
+            --bg-gradient: linear-gradient(135deg, #581c87 0%, #2e1065 100%);
+            --card-bg: rgba(88, 28, 135, 0.55);
+            --card-border: #f0abfc;
+            --text-primary: #faf5ff;
+            --text-accent: #fde047;
+            --button-bg: linear-gradient(135deg, #a855f7 0%, #7e22ce 100%);
+            --badge-bg: #6b21a8;
+            --font-family: 'Fredoka', sans-serif;
+            --box-shadow: 0 8px 25px rgba(240, 171, 252, 0.4);
+            background-image: radial-gradient(rgba(240, 171, 252, 0.2) 1.5px, transparent 1.5px);
+            background-size: 20px 20px;
+        }
+
+        /* 8. 🕵️ Secret Agent Theme */
+        .theme-agent {
+            --bg-gradient: linear-gradient(135deg, #022c22 0%, #020617 100%);
+            --card-bg: rgba(15, 23, 42, 0.95);
+            --card-border: #22c55e;
+            --text-primary: #4ade80;
+            --text-accent: #86efac;
+            --button-bg: linear-gradient(135deg, #15803d 0%, #166534 100%);
+            --badge-bg: #052e16;
+            --font-family: 'Outfit', sans-serif;
+            --box-shadow: 0 0 20px rgba(34, 197, 94, 0.4);
+            background-image: linear-gradient(rgba(34, 197, 94, 0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(34, 197, 94, 0.1) 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+
+        /* 9. 👾 Pixel Arcade Theme */
+        .theme-arcade {
+            --bg-gradient: linear-gradient(135deg, #18002e 0%, #000000 100%);
+            --card-bg: #0d001a;
+            --card-border: #ff007f;
+            --text-primary: #00ffcc;
+            --text-accent: #ff007f;
+            --button-bg: #ff007f;
+            --badge-bg: #330066;
+            --font-family: 'Press Start 2P', monospace;
+            --box-shadow: 5px 5px 0px #00ffcc;
+        }
+
+        /* 10. 🐾 Wild Jungle Theme */
+        .theme-jungle {
+            --bg-gradient: linear-gradient(135deg, #3f6212 0%, #1a2e05 100%);
+            --card-bg: rgba(57, 88, 16, 0.92);
+            --card-border: #a3e635;
+            --text-primary: #f7fee7;
+            --text-accent: #facc15;
+            --button-bg: linear-gradient(135deg, #65a30d 0%, #4d7c0f 100%);
+            --badge-bg: #3f6212;
+            --font-family: 'Fredoka', sans-serif;
+            --box-shadow: 0 8px 20px rgba(163, 230, 53, 0.3);
+            background-image: repeating-linear-gradient(60deg, rgba(163, 230, 53, 0.08), rgba(163, 230, 53, 0.08) 15px, transparent 15px, transparent 30px);
+        }
+
+        body {
+            font-family: var(--font-family);
+            background: var(--bg-gradient);
+            color: var(--text-primary);
+            min-height: 100vh;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .theme-card {
+            background: var(--card-bg);
+            border: 3px solid var(--card-border);
+            box-shadow: var(--box-shadow);
+            backdrop-filter: blur(10px);
+            border-radius: var(--border-radius);
+        }
+
+        .theme-btn {
+            background: var(--button-bg);
+            color: var(--button-text);
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+            transition: transform 0.15s ease, filter 0.15s ease;
+        }
+
+        .theme-btn:active {
+            transform: scale(0.95);
+        }
+
+        .theme-badge {
+            background-color: var(--badge-bg);
+            color: var(--text-primary);
+            border: 1px solid var(--card-border);
+        }
+
+        .keypad-btn {
+            background: rgba(255, 255, 255, 0.12);
+            border: 2px solid var(--card-border);
+            font-size: 1.5rem;
+            font-weight: 800;
+            border-radius: 1rem;
+            height: 3.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.1s, transform 0.1s;
+        }
+
+        .keypad-btn:active {
+            background: rgba(255, 255, 255, 0.35);
+            transform: scale(0.92);
+        }
+
+        @keyframes pulse-glow {
+            0%, 100% { transform: scale(1); filter: drop-shadow(0 0 10px rgba(250, 204, 21, 0.6)); }
+            50% { transform: scale(1.03); filter: drop-shadow(0 0 20px rgba(250, 204, 21, 0.9)); }
+        }
+
+        .animate-pulse-glow {
+            animation: pulse-glow 2s infinite ease-in-out;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-10px); }
+            40%, 80% { transform: translateX(10px); }
+        }
+
+        .animate-shake {
+            animation: shake 0.4s ease-in-out;
+        }
+
+        .modal-active {
+            display: flex !important;
+            animation: fadeIn 0.2s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.96); }
+            to { opacity: 1; transform: scale(1); }
+        }
+    </style>
+</head>
+<body class="theme-space p-3 md:p-6 pb-12 select-none">
+
+    <!-- Canvas Fireworks Overlay -->
+    <canvas id="fireworksCanvas" class="fixed inset-0 pointer-events-none z-[70] hidden"></canvas>
+
+    <!-- Top Header Navigation Bar -->
+    <header class="max-w-xl mx-auto flex justify-between items-center mb-4">
+        <div class="flex items-center space-x-2.5">
+            <span id="themeHeaderIcon" class="text-3xl md:text-4xl">🚀</span>
+            <div>
+                <h1 class="text-xl md:text-2xl font-black leading-none tracking-wide" id="appTitle">MORNING QUEST</h1>
+                <p class="text-[11px] md:text-xs opacity-80 mt-1" id="themeSubtitle">Space Explorer Mission</p>
+            </div>
+        </div>
+
+        <div class="flex items-center space-x-2">
+            <!-- Friday Scoreboard Button -->
+            <button onclick="openScoreboardModal()" class="theme-badge p-2.5 rounded-2xl flex items-center justify-center text-xl shadow-md transition-transform active:scale-95" title="Weekly Scoreboard">
+                🏆
+            </button>
+            <!-- Parent Settings Button (PIN Protected) -->
+            <button onclick="requestPinForAction('SETTINGS')" class="theme-badge p-2.5 rounded-2xl flex items-center justify-center text-xl shadow-md transition-transform active:scale-95" title="Parent Settings">
+                ⚙️
+            </button>
+        </div>
+    </header>
+
+    <!-- Start Morning Hunt Timer Banner (NO PIN REQUIRED) -->
+    <div class="max-w-xl mx-auto mb-4" id="huntStartBannerContainer">
+        <!-- Rendered dynamically -->
+    </div>
+
+    <!-- Dashboard Stats Bar -->
+    <div class="max-w-xl mx-auto grid grid-cols-2 gap-3 mb-4">
+        <!-- Live Play Time Bank Card -->
+        <div class="theme-card p-3.5 text-center relative overflow-hidden">
+            <p class="text-[10px] md:text-xs uppercase tracking-wider opacity-80 font-bold mb-0.5">Play Time Saved</p>
+            <div class="flex items-center justify-center space-x-1 text-2xl md:text-3xl font-black" id="bankedPlayTimeDisplay">
+                <span>⏱️</span>
+                <span id="playTimeMinutes" class="text-yellow-300">0</span>
+                <span class="text-xs font-semibold">Mins</span>
+            </div>
+            <p class="text-[10px] opacity-75 mt-0.5">Target: <span id="targetTimeLabel" class="font-bold">8:00 AM</span></p>
+        </div>
+
+        <!-- Days in a Row Streak Counter -->
+        <div class="theme-card p-3.5 text-center">
+            <p class="text-[10px] md:text-xs uppercase tracking-wider opacity-80 font-bold mb-0.5">Days In A Row</p>
+            <div class="flex items-center justify-center space-x-1 text-2xl md:text-3xl font-black">
+                <span>🔥</span>
+                <span id="streakCountDisplay" class="text-orange-400">0</span>
+                <span class="text-xs font-semibold">Days</span>
+            </div>
+            <p class="text-[10px] opacity-75 mt-0.5" id="streakLabel">Keep the streak going!</p>
+        </div>
+    </div>
+
+    <!-- Visual Progress Meter -->
+    <div class="max-w-xl mx-auto theme-card p-3.5 mb-5">
+        <div class="flex justify-between items-center mb-1.5 text-xs font-bold">
+            <span id="progressText">0 of 6 Tasks Done</span>
+            <span id="progressPercent" style="color: var(--text-accent);">0%</span>
+        </div>
+        <div class="w-full bg-black/40 h-4 rounded-full overflow-hidden p-0.5 border border-white/20">
+            <div id="progressBar" class="h-full rounded-full transition-all duration-500 ease-out" style="width: 0%; background: var(--button-bg);"></div>
+        </div>
+    </div>
+
+    <!-- Task List Container -->
+    <main class="max-w-xl mx-auto space-y-3" id="taskListContainer">
+        <!-- Task cards rendered dynamically -->
+    </main>
+
+    <!-- PIN Verification Modal -->
+    <div id="pinModal" class="fixed inset-0 bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-4 z-50">
+        <div id="pinCard" class="theme-card max-w-xs w-full p-5 text-center relative">
+            <button onclick="closePinModal()" class="absolute top-3 right-3 text-lg opacity-70 hover:opacity-100 p-1">✕</button>
+            <span class="text-3xl block mb-1">🔒</span>
+            <h3 class="text-base font-bold mb-0.5" id="pinModalTitle">Parent Verification</h3>
+            <p class="text-xs opacity-80 mb-4" id="pinModalSubtitle">Enter PIN (4865) to approve task!</p>
+
+            <!-- PIN Display Dots -->
+            <div class="flex justify-center space-x-3 mb-5">
+                <div class="w-4 h-4 rounded-full border-2 border-white/60 bg-transparent pin-dot"></div>
+                <div class="w-4 h-4 rounded-full border-2 border-white/60 bg-transparent pin-dot"></div>
+                <div class="w-4 h-4 rounded-full border-2 border-white/60 bg-transparent pin-dot"></div>
+                <div class="w-4 h-4 rounded-full border-2 border-white/60 bg-transparent pin-dot"></div>
+            </div>
+
+            <!-- Keypad Grid -->
+            <div class="grid grid-cols-3 gap-2">
+                <button onclick="pressPinKey('1')" class="keypad-btn">1</button>
+                <button onclick="pressPinKey('2')" class="keypad-btn">2</button>
+                <button onclick="pressPinKey('3')" class="keypad-btn">3</button>
+                <button onclick="pressPinKey('4')" class="keypad-btn">4</button>
+                <button onclick="pressPinKey('5')" class="keypad-btn">5</button>
+                <button onclick="pressPinKey('6')" class="keypad-btn">6</button>
+                <button onclick="pressPinKey('7')" class="keypad-btn">7</button>
+                <button onclick="pressPinKey('8')" class="keypad-btn">8</button>
+                <button onclick="pressPinKey('9')" class="keypad-btn">9</button>
+                <button onclick="clearPin()" class="keypad-btn text-xs text-red-400">CLEAR</button>
+                <button onclick="pressPinKey('0')" class="keypad-btn">0</button>
+                <button onclick="pressPinKey('BACK')" class="keypad-btn text-xs">⌫</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Parent Settings & Data Backup Modal -->
+    <div id="settingsModal" class="fixed inset-0 bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-4 z-50 overflow-y-auto">
+        <div class="theme-card max-w-md w-full p-5 my-auto">
+            <div class="flex justify-between items-center mb-3 border-b border-white/10 pb-2">
+                <h3 class="text-base font-bold flex items-center space-x-2">
+                    <span>⚙️</span>
+                    <span>Parent Control Panel</span>
+                </h3>
+                <button onclick="closeSettingsModal()" class="text-xl font-bold p-1">✕</button>
+            </div>
+
+            <div class="space-y-4 text-xs">
+                <!-- Theme Picker -->
+                <div>
+                    <label class="block font-bold mb-1 opacity-90">Select Adventure Theme:</label>
+                    <select id="themeSelect" onchange="changeTheme(this.value)" class="w-full p-3 rounded-xl bg-black/50 border border-white/20 text-white font-bold text-xs">
+                        <option value="space">🚀 Space Explorer</option>
+                        <option value="pirate">🏴‍☠️ Pirate Treasure Hunt</option>
+                        <option value="dino">🦖 Dino Safari</option>
+                        <option value="superhero">🦸 Superhero Training</option>
+                        <option value="racing">🏎️ Grand Prix Racing</option>
+                        <option value="sea">🌊 Under the Sea</option>
+                        <option value="magic">🏰 Magic Kingdom</option>
+                        <option value="agent">🕵️ Secret Agent</option>
+                        <option value="arcade">👾 Pixel Arcade</option>
+                        <option value="jungle">🐾 Wild Jungle</option>
+                    </select>
+                </div>
+
+                <!-- Target Ready Time & PIN Requirement Toggle -->
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-bold mb-1 opacity-90">Target Ready Time:</label>
+                        <input type="time" id="targetTimeInput" onchange="updateTargetTime(this.value)" class="w-full p-2.5 rounded-xl bg-black/50 border border-white/20 text-white font-bold text-xs">
+                    </div>
+                    <div>
+                        <label class="block font-bold mb-1 opacity-90">Parent Task PIN:</label>
+                        <button onclick="togglePinVerification()" id="pinToggleBtn" class="w-full p-2.5 rounded-xl font-bold text-center border border-white/20 theme-btn">
+                            ON (Required)
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Custom PIN Input -->
+                <div>
+                    <label class="block font-bold mb-1 opacity-90">Parent Passcode PIN (4 Digits):</label>
+                    <div class="flex space-x-2">
+                        <input type="number" id="customPinInput" placeholder="4865" maxlength="4" class="w-full p-2 rounded-xl bg-black/50 border border-white/20 text-white font-bold text-sm text-center">
+                        <button onclick="saveNewPin()" class="px-3.5 py-2 rounded-xl theme-btn font-bold whitespace-nowrap">Save PIN</button>
+                    </div>
+                </div>
+
+                <!-- Task Management Section -->
+                <div class="pt-2 border-t border-white/10">
+                    <div class="flex justify-between items-center mb-2">
+                        <div>
+                            <label class="font-bold opacity-90 block">Edit Existing Tasks:</label>
+                            <p class="text-[10px] opacity-70">Edit emoji or task title directly below</p>
+                        </div>
+                        <button onclick="addNewTaskRow()" class="text-xs theme-btn px-3 py-1.5 rounded-xl font-bold flex items-center space-x-1 shadow-md">
+                            <span>➕</span>
+                            <span>Add Task</span>
+                        </button>
+                    </div>
+                    <div id="settingsTaskList" class="space-y-2 max-h-48 overflow-y-auto pr-1">
+                        <!-- Editable Task Rows Rendered Dynamically -->
+                    </div>
+                </div>
+
+                <!-- Backup & Restore Data Utility -->
+                <div class="pt-2 border-t border-white/10">
+                    <label class="block font-bold mb-1.5 opacity-90">💾 Data Backup & Restore (MDM Safe):</label>
+                    <div class="grid grid-cols-2 gap-2 mb-2">
+                        <button onclick="exportBackupData()" class="p-2 bg-white/10 hover:bg-white/20 rounded-xl border border-white/20 font-bold text-center">
+                            📋 Copy Backup JSON
+                        </button>
+                        <button onclick="toggleImportArea()" class="p-2 bg-white/10 hover:bg-white/20 rounded-xl border border-white/20 font-bold text-center">
+                            📥 Restore Backup
+                        </button>
+                    </div>
+                    <div id="importContainer" class="hidden space-y-2 mt-2 p-2 bg-black/40 rounded-xl border border-white/10">
+                        <textarea id="importJsonText" placeholder="Paste your saved backup JSON here..." class="w-full h-16 p-2 text-[10px] bg-black/60 text-white rounded-lg border border-white/20 font-mono"></textarea>
+                        <button onclick="executeImportData()" class="w-full py-1.5 bg-green-600 hover:bg-green-500 rounded-lg font-bold text-white text-xs">
+                            Confirm Restore
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Reset Data & Close -->
+                <div class="pt-2 border-t border-white/10 flex justify-between items-center">
+                    <button onclick="confirmClearAllData()" class="text-red-400 underline font-semibold text-[11px]">
+                        ⚠️ Reset All App Data
+                    </button>
+                    <button onclick="closeSettingsModal()" class="theme-btn px-5 py-2 rounded-xl font-bold">
+                        Done
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Friday Trophy / Weekly Scoreboard Modal -->
+    <div id="scoreboardModal" class="fixed inset-0 bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-4 z-50 overflow-y-auto">
+        <div class="theme-card max-w-md w-full p-5 my-auto">
+            <div class="flex justify-between items-center mb-3">
+                <h3 class="text-base font-bold flex items-center space-x-2">
+                    <span>🏆</span>
+                    <span>Weekly Scoreboard</span>
+                </h3>
+                <button onclick="closeScoreboardModal()" class="text-xl font-bold p-1">✕</button>
+            </div>
+
+            <!-- Total Weekly Play Time Saved Banner -->
+            <div class="p-3.5 rounded-2xl bg-gradient-to-r from-yellow-500/20 to-amber-500/20 border border-yellow-500/40 text-center mb-4">
+                <p class="text-[10px] uppercase font-bold text-yellow-300 tracking-wider">Total Play Time Saved This Week</p>
+                <p class="text-3xl font-black text-yellow-400 my-0.5" id="weeklyTotalPlayTime">0 Mins</p>
+                <p class="text-[11px] opacity-80" id="weeklySpeedComparison">Great job starting your mornings fast!</p>
+            </div>
+
+            <!-- Mon-Fri Days List -->
+            <div class="space-y-2 text-xs mb-4" id="weeklyDaysList">
+                <!-- Dynamically populated -->
+            </div>
+
+            <button onclick="closeScoreboardModal()" class="w-full theme-btn py-3 rounded-xl font-bold">
+                Close Scoreboard
+            </button>
+        </div>
+    </div>
+
+    <!-- Victory Quest Celebration Modal -->
+    <div id="victoryModal" class="fixed inset-0 bg-black/90 backdrop-blur-md hidden flex items-center justify-center p-4 z-50">
+        <div class="theme-card max-w-sm w-full p-6 text-center z-10">
+            <span class="text-6xl block mb-2 animate-bounce">🎉</span>
+            <h2 class="text-2xl font-black text-yellow-300 mb-1">MISSION COMPLETE!</h2>
+            <p class="text-xs opacity-90 mb-2">You finished all your morning tasks on time!</p>
+
+            <div class="p-4 rounded-2xl bg-white/10 border border-white/20 mb-4 space-y-1">
+                <p class="text-[10px] uppercase font-bold tracking-wider opacity-80">Hunt Speed Duration</p>
+                <p class="text-xl font-bold text-cyan-300" id="victoryHuntDuration">15 Mins</p>
+
+                <div class="border-t border-white/10 my-2 pt-2">
+                    <p class="text-[10px] uppercase font-bold tracking-wider text-yellow-300">Bonus Play Time Earned</p>
+                    <p class="text-4xl font-black text-yellow-400 my-1" id="victoryBonusTime">+15 MINS</p>
+                    <p class="text-[11px] opacity-80">Finished at <span id="victoryFinishTime">7:45 AM</span> (Target: <span id="victoryTargetTime">8:00 AM</span>)</p>
+                </div>
+            </div>
+
+            <button onclick="triggerPlayTimeCelebration()" class="w-full theme-btn py-4 rounded-2xl font-black text-lg shadow-xl animate-pulse-glow">
+                🚀 START PLAY TIME! 🎆
+            </button>
+        </div>
+    </div>
+
+    <!-- Custom Dialog Modal -->
+    <div id="customDialogModal" class="fixed inset-0 bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-4 z-50">
+        <div class="theme-card max-w-xs w-full p-5 text-center">
+            <span class="text-3xl block mb-2" id="dialogIcon">🔔</span>
+            <h3 class="text-base font-bold mb-1" id="dialogTitle">Notice</h3>
+            <p class="text-xs opacity-80 mb-4" id="dialogMessage">Dialog message goes here...</p>
+
+            <div class="flex justify-center space-x-2" id="dialogButtons">
+                <!-- Action buttons rendered dynamically -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Hidden Input for Copying Data -->
+    <textarea id="hiddenClipboardInput" class="absolute -left-full -top-full opacity-0 pointer-events-none"></textarea>
+
+    <script>
+        /* STATE MANAGEMENT & DEFAULTS */
+        const DEFAULT_STATE = {
+            pin: "4865",
+            requirePinForTasks: true,
+            theme: "space",
+            targetTime: "08:00",
+            streak: 0,
+            lastCompletedDate: null,
+            huntStartedAt: null,
+            huntCompletedAt: null,
+            tasks: [
+                { id: "1", emoji: "🛏️", title: "Make Bed", done: false },
+                { id: "2", emoji: "👕", title: "Put On Clothes", done: false },
+                { id: "3", emoji: "🥣", title: "Eat Breakfast", done: false },
+                { id: "4", emoji: "🪥", title: "Brush Teeth & Face", done: false },
+                { id: "5", emoji: "🎒", title: "Pack Backpack", done: false },
+                { id: "6", emoji: "👟", title: "Put On Shoes & Jacket", done: false }
+            ],
+            weeklyHistory: {
+                Monday: { completed: false, startTime: null, finishTime: null, durationMins: 0, savedMins: 0 },
+                Tuesday: { completed: false, startTime: null, finishTime: null, durationMins: 0, savedMins: 0 },
+                Wednesday: { completed: false, startTime: null, finishTime: null, durationMins: 0, savedMins: 0 },
+                Thursday: { completed: false, startTime: null, finishTime: null, durationMins: 0, savedMins: 0 },
+                Friday: { completed: false, startTime: null, finishTime: null, durationMins: 0, savedMins: 0 }
+            }
+        };
+
+        let state = JSON.parse(localStorage.getItem("morning_quest_state")) || DEFAULT_STATE;
+
+        if (!state.weeklyHistory) state.weeklyHistory = DEFAULT_STATE.weeklyHistory;
+        if (!state.pin) state.pin = "4865";
+
+        let pinBuffer = "";
+        let pendingAction = null;
+        let dialogConfirmCallback = null;
+
+        const THEME_CONFIGS = {
+            space: { icon: "🚀", title: "MORNING QUEST", subtitle: "Space Explorer Mission" },
+            pirate: { icon: "🏴‍☠️", title: "TREASURE HUNT", subtitle: "Pirate Crew Morning Mission" },
+            dino: { icon: "🦖", title: "DINO SAFARI", subtitle: "Prehistoric Morning Expedition" },
+            superhero: { icon: "🦸", title: "HERO TRAINING", subtitle: "Superhero Morning Readiness" },
+            racing: { icon: "🏎️", title: "GRAND PRIX", subtitle: "Pit-Stop Morning Dash" },
+            sea: { icon: "🌊", title: "OCEAN EXPEDITION", subtitle: "Deep Sea Morning Quest" },
+            magic: { icon: "🏰", title: "MAGIC KINGDOM", subtitle: "Wizard's Daily Morning Spell" },
+            agent: { icon: "🕵️", title: "TOP SECRET", subtitle: "Classified Morning Operation" },
+            arcade: { icon: "👾", title: "LEVEL UP", subtitle: "8-Bit Arcade Routine" },
+            jungle: { icon: "🐾", title: "JUNGLE TREK", subtitle: "Wild Safari Routine" }
+        };
+
+        /* WEB AUDIO SYNTHESIZER */
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        let audioCtx = null;
+
+        function getAudioContext() {
+            if (!audioCtx) {
+                audioCtx = new AudioContextClass();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            return audioCtx;
+        }
+
+        function playThemeSound(theme) {
+            try {
+                const ctx = getAudioContext();
+                const now = ctx.currentTime;
+
+                if (theme === 'space') {
+                    // Laser Warp Sweep
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(900, now);
+                    osc.frequency.exponentialRampToValueAtTime(150, now + 0.2);
+                    gain.gain.setValueAtTime(0.3, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
+                    osc.start(now);
+                    osc.stop(now + 0.2);
+                } else if (theme === 'pirate') {
+                    // Cannon Fire Boom
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(160, now);
+                    osc.frequency.exponentialRampToValueAtTime(30, now + 0.3);
+                    gain.gain.setValueAtTime(0.5, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+                    osc.start(now);
+                    osc.stop(now + 0.3);
+                } else if (theme === 'dino') {
+                    // Low Dino Roar Pitch Wobble
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(180, now);
+                    osc.frequency.linearRampToValueAtTime(90, now + 0.15);
+                    osc.frequency.linearRampToValueAtTime(140, now + 0.3);
+                    gain.gain.setValueAtTime(0.35, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.35);
+                    osc.start(now);
+                    osc.stop(now + 0.35);
+                } else if (theme === 'superhero') {
+                    // Power-Up Ascending Triad
+                    [300, 400, 500, 800].forEach((freq, i) => {
+                        const osc = ctx.createOscillator();
+                        const gain = ctx.createGain();
+                        osc.connect(gain);
+                        gain.connect(ctx.destination);
+                        osc.type = 'triangle';
+                        osc.frequency.setValueAtTime(freq, now + i * 0.06);
+                        gain.gain.setValueAtTime(0.3, now + i * 0.06);
+                        gain.gain.exponentialRampToValueAtTime(0.01, now + i * 0.06 + 0.12);
+                        osc.start(now + i * 0.06);
+                        osc.stop(now + i * 0.06 + 0.12);
+                    });
+                } else if (theme === 'racing') {
+                    // Engine Rev Pitch Ramp
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(120, now);
+                    osc.frequency.exponentialRampToValueAtTime(450, now + 0.25);
+                    gain.gain.setValueAtTime(0.35, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.28);
+                    osc.start(now);
+                    osc.stop(now + 0.28);
+                } else if (theme === 'sea') {
+                    // Submarine Sonar Ping
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(1200, now);
+                    gain.gain.setValueAtTime(0.3, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
+                    osc.start(now);
+                    osc.stop(now + 0.4);
+                } else if (theme === 'magic') {
+                    // Wand Glitter Glissando
+                    [1000, 1300, 1600, 2000, 2400].forEach((freq, i) => {
+                        const osc = ctx.createOscillator();
+                        const gain = ctx.createGain();
+                        osc.connect(gain);
+                        gain.connect(ctx.destination);
+                        osc.type = 'sine';
+                        osc.frequency.setValueAtTime(freq, now + i * 0.04);
+                        gain.gain.setValueAtTime(0.25, now + i * 0.04);
+                        gain.gain.exponentialRampToValueAtTime(0.01, now + i * 0.04 + 0.15);
+                        osc.start(now + i * 0.04);
+                        osc.stop(now + i * 0.04 + 0.15);
+                    });
+                } else if (theme === 'agent') {
+                    // Double Radar Pulse
+                    [1200, 1200].forEach((freq, i) => {
+                        const osc = ctx.createOscillator();
+                        const gain = ctx.createGain();
+                        osc.connect(gain);
+                        gain.connect(ctx.destination);
+                        osc.type = 'square';
+                        osc.frequency.setValueAtTime(freq, now + i * 0.1);
+                        gain.gain.setValueAtTime(0.2, now + i * 0.1);
+                        gain.gain.exponentialRampToValueAtTime(0.01, now + i * 0.1 + 0.06);
+                        osc.start(now + i * 0.1);
+                        osc.stop(now + i * 0.1 + 0.06);
+                    });
+                } else if (theme === 'arcade') {
+                    // Retro 8-Bit Coin Jump
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.type = 'square';
+                    osc.frequency.setValueAtTime(987, now); // B5
+                    osc.frequency.setValueAtTime(1318, now + 0.08); // E6
+                    gain.gain.setValueAtTime(0.25, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
+                    osc.start(now);
+                    osc.stop(now + 0.25);
+                } else if (theme === 'jungle') {
+                    // Tribal Drum Thump
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(180, now);
+                    osc.frequency.exponentialRampToValueAtTime(30, now + 0.2);
+                    gain.gain.setValueAtTime(0.5, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
+                    osc.start(now);
+                    osc.stop(now + 0.2);
+                } else {
+                    playThemeSound('space');
+                }
+            } catch (e) {
+                console.log("Audio synth error:", e);
+            }
+        }
+
+        function playVictoryMusic() {
+            try {
+                const ctx = getAudioContext();
+                const now = ctx.currentTime;
+
+                // Victory Fanfare Tune: C4 -> E4 -> G4 -> C5 -> E5
+                const notes = [
+                    { freq: 261.63, dur: 0.15, delay: 0.0 },
+                    { freq: 329.63, dur: 0.15, delay: 0.15 },
+                    { freq: 392.00, dur: 0.15, delay: 0.30 },
+                    { freq: 523.25, dur: 0.30, delay: 0.45 },
+                    { freq: 659.25, dur: 0.50, delay: 0.75 }
+                ];
+
+                notes.forEach(note => {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(note.freq, now + note.delay);
+                    
+                    gain.gain.setValueAtTime(0.35, now + note.delay);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + note.delay + note.dur);
+
+                    osc.start(now + note.delay);
+                    osc.stop(now + note.delay + note.dur);
+                });
+            } catch(e) {
+                console.log("Victory audio error:", e);
+            }
+        }
+
+        function playErrorSound() {
+            try {
+                const ctx = getAudioContext();
+                const now = ctx.currentTime;
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(160, now);
+                gain.gain.setValueAtTime(0.35, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
+                osc.start(now);
+                osc.stop(now + 0.25);
+            } catch(e){}
+        }
+
+        /* FULL-SCREEN FIREWORKS ENGINE */
+        let fireworksActive = false;
+        let particles = [];
+        let canvas, ctx;
+
+        function initFireworksCanvas() {
+            canvas = document.getElementById("fireworksCanvas");
+            ctx = canvas.getContext("2d");
+            resizeCanvas();
+            window.addEventListener("resize", resizeCanvas);
+        }
+
+        function resizeCanvas() {
+            if (canvas) {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            }
+        }
+
+        function createFireworkExplosion(x, y) {
+            const colors = ['#facc15', '#38bdf8', '#ef4444', '#a855f7', '#22c55e', '#ff007f'];
+            const particleCount = 60;
+
+            for (let i = 0; i < particleCount; i++) {
+                const angle = (Math.PI * 2 / particleCount) * i + (Math.random() * 0.2);
+                const speed = Math.random() * 6 + 2;
+                particles.push({
+                    x: x,
+                    y: y,
+                    vx: Math.cos(angle) * speed,
+                    vy: Math.sin(angle) * speed,
+                    color: colors[Math.floor(Math.random() * colors.length)],
+                    alpha: 1,
+                    decay: Math.random() * 0.02 + 0.015,
+                    size: Math.random() * 3 + 2
+                });
+            }
+        }
+
+        function renderFireworksLoop() {
+            if (!fireworksActive) return;
+
+            ctx.globalCompositeOperation = 'destination-out';
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.globalCompositeOperation = 'lighter';
+
+            // Randomly launch explosions
+            if (Math.random() < 0.1) {
+                createFireworkExplosion(
+                    Math.random() * canvas.width,
+                    Math.random() * (canvas.height * 0.6)
+                );
+            }
+
+            for (let i = particles.length - 1; i >= 0; i--) {
+                const p = particles[i];
+                p.x += p.vx;
+                p.y += p.vy;
+                p.vy += 0.08; // Gravity
+                p.alpha -= p.decay;
+
+                if (p.alpha <= 0) {
+                    particles.splice(i, 1);
+                    continue;
+                }
+
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                ctx.fillStyle = p.color;
+                ctx.globalAlpha = p.alpha;
+                ctx.fill();
+            }
+
+            requestAnimationFrame(renderFireworksLoop);
+        }
+
+        function startFireworks() {
+            fireworksActive = true;
+            canvas.classList.remove("hidden");
+            particles = [];
+            // Spawn initial bursts
+            createFireworkExplosion(canvas.width * 0.3, canvas.height * 0.3);
+            createFireworkExplosion(canvas.width * 0.7, canvas.height * 0.3);
+            renderFireworksLoop();
+        }
+
+        function stopFireworks() {
+            fireworksActive = false;
+            if (canvas) {
+                canvas.classList.add("hidden");
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+            }
+        }
+
+        function triggerPlayTimeCelebration() {
+            playVictoryMusic();
+            startFireworks();
+            closeVictoryModal();
+            setTimeout(() => {
+                stopFireworks();
+            }, 8000);
+        }
+
+        function saveStateToStorageOnly() {
+            localStorage.setItem("morning_quest_state", JSON.stringify(state));
+        }
+
+        function saveState() {
+            saveStateToStorageOnly();
+            renderApp();
+        }
+
+        function getTargetDateForToday() {
+            const [targetHours, targetMins] = state.targetTime.split(':').map(Number);
+            const targetDate = new Date();
+            targetDate.setHours(targetHours, targetMins, 0, 0);
+            return targetDate;
+        }
+
+        function calculatePlayTimeSaved(completionTimestamp = null) {
+            const finishTime = completionTimestamp ? new Date(completionTimestamp) : new Date();
+            const targetDate = getTargetDateForToday();
+
+            const diffMs = targetDate - finishTime;
+            const diffMins = Math.floor(diffMs / 60000);
+
+            return Math.max(0, diffMins);
+        }
+
+        function formatTime12H(time24OrDate) {
+            let h, m;
+            if (typeof time24OrDate === 'string' && time24OrDate.includes(':')) {
+                [h, m] = time24OrDate.split(':').map(Number);
+            } else if (time24OrDate instanceof Date || typeof time24OrDate === 'number') {
+                const d = new Date(time24OrDate);
+                h = d.getHours();
+                m = d.getMinutes();
+            } else {
+                return "8:00 AM";
+            }
+            const period = h >= 12 ? 'PM' : 'AM';
+            const h12 = h % 12 || 12;
+            return `${h12}:${m < 10 ? '0' : ''}${m} ${period}`;
+        }
+
+        function escapeAttr(str) {
+            return (str || '').replace(/"/g, '&quot;');
+        }
+
+        function startMorningHuntNoPin() {
+            playThemeSound(state.theme);
+            state.huntStartedAt = Date.now();
+            state.huntCompletedAt = null;
+            
+            // Reset daily task checkboxes
+            state.tasks.forEach(t => t.done = false);
+            victoryTriggeredToday = false;
+
+            saveState();
+        }
+
+        function renderHuntBanner() {
+            const container = document.getElementById("huntStartBannerContainer");
+            container.innerHTML = "";
+
+            if (!state.huntStartedAt) {
+                container.innerHTML = `
+                    <button onclick="startMorningHuntNoPin()" class="w-full theme-card p-4 text-center border-yellow-400/80 animate-pulse-glow transition-transform active:scale-95">
+                        <span class="text-3xl block mb-1">🚀</span>
+                        <h2 class="text-lg md:text-xl font-black text-yellow-300">START MORNING HUNT!</h2>
+                        <p class="text-xs opacity-90">Tap here when son starts getting ready (No PIN required)</p>
+                    </button>
+                `;
+            } else {
+                const startTimeFormatted = formatTime12H(state.huntStartedAt);
+                const elapsedMins = Math.floor((Date.now() - state.huntStartedAt) / 60000);
+                const allDone = state.tasks.length > 0 && state.tasks.every(t => t.done);
+
+                container.innerHTML = `
+                    <div class="theme-card p-3.5 flex items-center justify-between border-cyan-400/60 bg-cyan-950/20">
+                        <div class="flex items-center space-x-2.5">
+                            <span class="text-2xl">${allDone ? '🏁' : '⏱️'}</span>
+                            <div>
+                                <h3 class="font-bold text-xs md:text-sm">${allDone ? 'Hunt Completed!' : 'Hunt In Progress...'}</h3>
+                                <p class="text-[10px] md:text-xs opacity-80">Started at ${startTimeFormatted} • Elapsed: <span class="font-bold text-yellow-300">${elapsedMins} Mins</span></p>
+                            </div>
+                        </div>
+                        <button onclick="startMorningHuntNoPin()" class="text-[10px] theme-badge px-2.5 py-1.5 rounded-xl font-bold opacity-80 hover:opacity-100">
+                            Restart
+                        </button>
+                    </div>
+                `;
+            }
+        }
+
+        function renderApp() {
+            document.body.className = `theme-${state.theme} p-3 md:p-6 pb-12 select-none`;
+
+            const themeConfig = THEME_CONFIGS[state.theme] || THEME_CONFIGS.space;
+            document.getElementById("themeHeaderIcon").textContent = themeConfig.icon;
+            document.getElementById("appTitle").textContent = themeConfig.title;
+            document.getElementById("themeSubtitle").textContent = themeConfig.subtitle;
+
+            renderHuntBanner();
+
+            const currentPlayTime = calculatePlayTimeSaved(state.huntCompletedAt);
+            document.getElementById("playTimeMinutes").textContent = currentPlayTime;
+            document.getElementById("targetTimeLabel").textContent = formatTime12H(state.targetTime);
+
+            document.getElementById("streakCountDisplay").textContent = state.streak;
+
+            const container = document.getElementById("taskListContainer");
+            container.innerHTML = "";
+
+            let completedCount = 0;
+
+            state.tasks.forEach((task) => {
+                if (task.done) completedCount++;
+
+                const card = document.createElement("div");
+                card.className = `theme-card p-4 flex items-center justify-between transition-all ${task.done ? 'opacity-85 border-green-400/80 bg-green-950/20' : ''}`;
+                
+                // Pure clean layout without subtask descriptions
+                card.innerHTML = `
+                    <div class="flex items-center space-x-3.5">
+                        <span class="text-3xl p-2.5 rounded-2xl bg-black/20">${task.emoji || '📌'}</span>
+                        <h3 class="font-bold text-base md:text-lg ${task.done ? 'line-through opacity-75' : ''}">${task.title || 'Untitled Task'}</h3>
+                    </div>
+                    <div>
+                        ${task.done ? `
+                            <button onclick="toggleTaskDone('${task.id}')" class="bg-green-500/20 border border-green-400 text-green-300 font-bold px-3.5 py-2.5 rounded-xl text-xs flex items-center space-x-1">
+                                <span>✓</span>
+                                <span>DONE</span>
+                            </button>
+                        ` : `
+                            <button onclick="handleTaskClick('${task.id}')" class="theme-btn font-bold px-4 py-2.5 rounded-xl text-xs shadow-md">
+                                I Did It!
+                            </button>
+                        `}
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+
+            const totalTasks = state.tasks.length;
+            const percent = totalTasks > 0 ? Math.round((completedCount / totalTasks) * 100) : 0;
+            document.getElementById("progressText").textContent = `${completedCount} of ${totalTasks} Tasks Done`;
+            document.getElementById("progressPercent").textContent = `${percent}%`;
+            document.getElementById("progressBar").style.width = `${percent}%`;
+
+            if (completedCount === totalTasks && totalTasks > 0) {
+                checkQuestCompletion();
+            }
+        }
+
+        function handleTaskClick(taskId) {
+            if (!state.huntStartedAt) {
+                state.huntStartedAt = Date.now();
+            }
+
+            if (state.requirePinForTasks) {
+                requestPinForAction('TASK', taskId);
+            } else {
+                toggleTaskDone(taskId);
+            }
+        }
+
+        function toggleTaskDone(taskId) {
+            const task = state.tasks.find(t => t.id === taskId);
+            if (task) {
+                task.done = !task.done;
+                if (task.done) {
+                    playThemeSound(state.theme);
+                    try {
+                        confetti({ particleCount: 35, spread: 50, origin: { y: 0.7 } });
+                    } catch(e){}
+                }
+                saveState();
+            }
+        }
+
+        /* PIN VERIFICATION MODAL ENGINE */
+        function requestPinForAction(type, taskId = null) {
+            pendingAction = { type, taskId };
+            pinBuffer = "";
+            updatePinDots();
+            
+            document.getElementById("pinModalTitle").textContent = type === 'SETTINGS' ? "Parent Settings" : "Verify Task";
+            document.getElementById("pinModalSubtitle").textContent = `Enter PIN (${state.pin}) to approve`;
+            document.getElementById("pinModal").classList.add("modal-active");
+            document.getElementById("pinModal").classList.remove("hidden");
+        }
+
+        function pressPinKey(key) {
+            if (key === 'BACK') {
+                pinBuffer = pinBuffer.slice(0, -1);
+            } else if (pinBuffer.length < 4) {
+                pinBuffer += key;
+            }
+
+            updatePinDots();
+
+            if (pinBuffer.length === 4) {
+                verifyPin();
+            }
+        }
+
+        function clearPin() {
+            pinBuffer = "";
+            updatePinDots();
+        }
+
+        function updatePinDots() {
+            const dots = document.querySelectorAll(".pin-dot");
+            dots.forEach((dot, index) => {
+                if (index < pinBuffer.length) {
+                    dot.classList.add("bg-white");
+                } else {
+                    dot.classList.remove("bg-white");
+                }
+            });
+        }
+
+        function verifyPin() {
+            if (pinBuffer === state.pin) {
+                playThemeSound(state.theme);
+                const action = pendingAction;
+                closePinModal();
+
+                if (action.type === 'TASK') {
+                    toggleTaskDone(action.taskId);
+                } else if (action.type === 'SETTINGS') {
+                    openSettingsModal();
+                }
+            } else {
+                playErrorSound();
+                const card = document.getElementById("pinCard");
+                card.classList.add("animate-shake");
+                setTimeout(() => card.classList.remove("animate-shake"), 400);
+
+                pinBuffer = "";
+                updatePinDots();
+                document.getElementById("pinModalSubtitle").textContent = "❌ Incorrect PIN! Try again.";
+            }
+        }
+
+        function closePinModal() {
+            document.getElementById("pinModal").classList.remove("modal-active");
+            document.getElementById("pinModal").classList.add("hidden");
+            pinBuffer = "";
+            pendingAction = null;
+        }
+
+        /* SETTINGS MODAL LOGIC */
+        function openSettingsModal() {
+            document.getElementById("themeSelect").value = state.theme;
+            document.getElementById("targetTimeInput").value = state.targetTime;
+            document.getElementById("customPinInput").value = state.pin;
+            
+            const pinBtn = document.getElementById("pinToggleBtn");
+            pinBtn.textContent = state.requirePinForTasks ? "ON (Required)" : "OFF (Disabled)";
+            pinBtn.className = `w-full p-2.5 rounded-xl font-bold text-center border border-white/20 ${state.requirePinForTasks ? 'theme-btn' : 'bg-white/10'}`;
+
+            renderSettingsTaskList();
+            document.getElementById("settingsModal").classList.add("modal-active");
+            document.getElementById("settingsModal").classList.remove("hidden");
+        }
+
+        function closeSettingsModal() {
+            document.getElementById("settingsModal").classList.remove("modal-active");
+            document.getElementById("settingsModal").classList.add("hidden");
+            document.getElementById("importContainer").classList.add("hidden");
+            renderApp();
+        }
+
+        function togglePinVerification() {
+            state.requirePinForTasks = !state.requirePinForTasks;
+            saveStateToStorageOnly();
+            openSettingsModal();
+        }
+
+        function saveNewPin() {
+            const newPin = document.getElementById("customPinInput").value.trim();
+            if (newPin.length === 4 && /^\d+$/.test(newPin)) {
+                state.pin = newPin;
+                saveState();
+                showCustomAlert("PIN Updated", "Parent passcode has been successfully saved!");
+            } else {
+                showCustomAlert("Invalid PIN", "Please enter a 4-digit numeric PIN.");
+            }
+        }
+
+        function changeTheme(themeKey) {
+            state.theme = themeKey;
+            playThemeSound(themeKey);
+            saveState();
+        }
+
+        function updateTargetTime(val) {
+            if (val) {
+                state.targetTime = val;
+                saveState();
+            }
+        }
+
+        /* EDITABLE TASKS LIST (INLINE EDITING + ADD TASK) */
+        function renderSettingsTaskList() {
+            const list = document.getElementById("settingsTaskList");
+            list.innerHTML = "";
+
+            state.tasks.forEach((task, index) => {
+                const item = document.createElement("div");
+                item.className = "flex items-center space-x-2 p-2 rounded-xl bg-black/30 border border-white/10";
+                item.innerHTML = `
+                    <input type="text" value="${escapeAttr(task.emoji)}" oninput="updateTaskEmoji('${task.id}', this.value)" title="Task Emoji Icon" class="w-10 h-8 text-center text-sm rounded bg-black/50 border border-white/20 text-white font-bold focus:outline-none focus:border-cyan-400 shrink-0">
+                    <input type="text" value="${escapeAttr(task.title)}" oninput="updateTaskTitle('${task.id}', this.value)" placeholder="Task Name..." title="Task Name" class="flex-1 h-8 px-2 text-xs rounded bg-black/50 border border-white/20 text-white font-bold focus:outline-none focus:border-cyan-400">
+                    <div class="flex items-center space-x-1 shrink-0">
+                        <button onclick="moveTask(${index}, -1)" title="Move Up" class="w-7 h-8 bg-white/10 hover:bg-white/20 rounded font-bold text-xs flex items-center justify-center">▲</button>
+                        <button onclick="moveTask(${index}, 1)" title="Move Down" class="w-7 h-8 bg-white/10 hover:bg-white/20 rounded font-bold text-xs flex items-center justify-center">▼</button>
+                        <button onclick="deleteTask('${task.id}')" title="Delete Task" class="w-7 h-8 bg-red-500/30 hover:bg-red-500/50 text-red-300 rounded font-bold text-xs flex items-center justify-center">✕</button>
+                    </div>
+                `;
+                list.appendChild(item);
+            });
+        }
+
+        function updateTaskEmoji(taskId, newEmoji) {
+            const task = state.tasks.find(t => t.id === taskId);
+            if (task) {
+                task.emoji = newEmoji;
+                saveStateToStorageOnly();
+            }
+        }
+
+        function updateTaskTitle(taskId, newTitle) {
+            const task = state.tasks.find(t => t.id === taskId);
+            if (task) {
+                task.title = newTitle;
+                saveStateToStorageOnly();
+            }
+        }
+
+        function moveTask(index, direction) {
+            const newIndex = index + direction;
+            if (newIndex >= 0 && newIndex < state.tasks.length) {
+                const temp = state.tasks[index];
+                state.tasks[index] = state.tasks[newIndex];
+                state.tasks[newIndex] = temp;
+                saveStateToStorageOnly();
+                renderSettingsTaskList();
+            }
+        }
+
+        function deleteTask(taskId) {
+            state.tasks = state.tasks.filter(t => t.id !== taskId);
+            saveStateToStorageOnly();
+            renderSettingsTaskList();
+        }
+
+        function addNewTaskRow() {
+            const defaultEmojis = ["⭐", "🧹", "🍎", "🧼", "📖", "🎒", "🧸", "🥛", "👕"];
+            const randomEmoji = defaultEmojis[Math.floor(Math.random() * defaultEmojis.length)];
+            
+            const newTask = {
+                id: Date.now().toString(),
+                emoji: randomEmoji,
+                title: "New Task " + (state.tasks.length + 1),
+                done: false
+            };
+
+            state.tasks.push(newTask);
+            saveStateToStorageOnly();
+            renderSettingsTaskList();
+
+            const listContainer = document.getElementById("settingsTaskList");
+            setTimeout(() => {
+                listContainer.scrollTop = listContainer.scrollHeight;
+            }, 50);
+        }
+
+        /* BACKUP DATA EXPORT & IMPORT UTILITY */
+        function exportBackupData() {
+            const jsonString = JSON.stringify(state);
+            const hiddenInput = document.getElementById("hiddenClipboardInput");
+            hiddenInput.value = jsonString;
+            hiddenInput.select();
+
+            let copied = false;
+            try {
+                copied = document.execCommand('copy');
+            } catch (err) {
+                copied = false;
+            }
+
+            if (copied) {
+                showCustomAlert("Backup Copied! 📋", "Your app data string has been copied to your clipboard. Paste and store it anywhere safe!");
+            } else {
+                prompt("Copy this backup string manually:", jsonString);
+            }
+        }
+
+        function toggleImportArea() {
+            const container = document.getElementById("importContainer");
+            container.classList.toggle("hidden");
+        }
+
+        function executeImportData() {
+            const jsonString = document.getElementById("importJsonText").value.trim();
+            if (!jsonString) {
+                showCustomAlert("Empty Backup", "Please paste a valid JSON backup string first.");
+                return;
+            }
+
+            try {
+                const parsed = JSON.parse(jsonString);
+                if (parsed && parsed.tasks && parsed.pin) {
+                    state = parsed;
+                    saveState();
+                    closeSettingsModal();
+                    showCustomAlert("Restore Complete! 🎉", "Your morning quest tasks, streaks, and settings have been fully restored!");
+                } else {
+                    showCustomAlert("Invalid Format", "The pasted backup data appears incomplete or corrupted.");
+                }
+            } catch (e) {
+                showCustomAlert("Parsing Error", "Could not read the backup JSON text. Check the formatting.");
+            }
+        }
+
+        /* WEEKLY SCOREBOARD LOGIC */
+        function openScoreboardModal() {
+            const list = document.getElementById("weeklyDaysList");
+            list.innerHTML = "";
+
+            const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
+            let totalSaved = 0;
+
+            days.forEach(day => {
+                const record = state.weeklyHistory[day] || { completed: false, startTime: null, finishTime: null, durationMins: 0, savedMins: 0 };
+                totalSaved += record.savedMins;
+
+                const dayCard = document.createElement("div");
+                dayCard.className = `p-3 rounded-2xl flex items-center justify-between border ${record.completed ? 'bg-green-950/20 border-green-500/40' : 'bg-black/20 border-white/10'}`;
+                
+                dayCard.innerHTML = `
+                    <div>
+                        <p class="font-bold text-sm">${day}</p>
+                        <p class="text-[10px] opacity-75">${record.completed ? `Ready at ${record.finishTime} (${record.durationMins}m speed)` : 'Not completed yet'}</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="font-black ${record.savedMins > 0 ? 'text-yellow-400' : 'opacity-50'}">${record.savedMins > 0 ? `+${record.savedMins} Mins` : '0 Mins'}</p>
+                        <p class="text-[10px] opacity-75">${record.completed ? '✓ Completed' : '--'}</p>
+                    </div>
+                `;
+                list.appendChild(dayCard);
+            });
+
+            document.getElementById("weeklyTotalPlayTime").textContent = `${totalSaved} Mins`;
+            document.getElementById("scoreboardModal").classList.add("modal-active");
+            document.getElementById("scoreboardModal").classList.remove("hidden");
+        }
+
+        function closeScoreboardModal() {
+            document.getElementById("scoreboardModal").classList.remove("modal-active");
+            document.getElementById("scoreboardModal").classList.add("hidden");
+        }
+
+        /* QUEST VICTORY LOGIC */
+        let victoryTriggeredToday = false;
+
+        function checkQuestCompletion() {
+            const todayStr = new Date().toDateString();
+            if (state.lastCompletedDate === todayStr || victoryTriggeredToday) return;
+
+            victoryTriggeredToday = true;
+            state.lastCompletedDate = todayStr;
+            state.huntCompletedAt = Date.now();
+            state.streak += 1;
+
+            const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+            const currentDayName = dayNames[new Date().getDay()];
+            
+            const savedPlayTime = calculatePlayTimeSaved(state.huntCompletedAt);
+            const huntStart = state.huntStartedAt ? state.huntStartedAt : Date.now();
+            const durationMins = Math.max(1, Math.round((state.huntCompletedAt - huntStart) / 60000));
+            const finishTimeStr = formatTime12H(state.huntCompletedAt);
+
+            if (state.weeklyHistory[currentDayName]) {
+                state.weeklyHistory[currentDayName] = {
+                    completed: true,
+                    startTime: formatTime12H(huntStart),
+                    finishTime: finishTimeStr,
+                    durationMins: durationMins,
+                    savedMins: savedPlayTime
+                };
+            }
+
+            saveState();
+
+            try {
+                confetti({ particleCount: 150, spread: 90, origin: { y: 0.6 } });
+            } catch(e){}
+
+            document.getElementById("victoryHuntDuration").textContent = `${durationMins} Mins`;
+            document.getElementById("victoryBonusTime").textContent = `+${savedPlayTime} MINS`;
+            document.getElementById("victoryFinishTime").textContent = finishTimeStr;
+            document.getElementById("victoryTargetTime").textContent = formatTime12H(state.targetTime);
+
+            document.getElementById("victoryModal").classList.add("modal-active");
+            document.getElementById("victoryModal").classList.remove("hidden");
+        }
+
+        function closeVictoryModal() {
+            document.getElementById("victoryModal").classList.remove("modal-active");
+            document.getElementById("victoryModal").classList.add("hidden");
+        }
+
+        /* CUSTOM DIALOG SYSTEM */
+        function showCustomAlert(title, message) {
+            document.getElementById("dialogIcon").textContent = "🔔";
+            document.getElementById("dialogTitle").textContent = title;
+            document.getElementById("dialogMessage").textContent = message;
+
+            const btns = document.getElementById("dialogButtons");
+            btns.innerHTML = `
+                <button onclick="closeCustomDialog()" class="theme-btn px-6 py-2 rounded-xl font-bold text-xs">
+                    OK
+                </button>
+            `;
+            document.getElementById("customDialogModal").classList.add("modal-active");
+            document.getElementById("customDialogModal").classList.remove("hidden");
+        }
+
+        function confirmClearAllData() {
+            showCustomConfirm(
+                "Reset All Data?",
+                "This will wipe all custom tasks, streaks, and saved history. Continue?",
+                () => {
+                    localStorage.removeItem("morning_quest_state");
+                    state = DEFAULT_STATE;
+                    saveState();
+                    closeSettingsModal();
+                }
+            );
+        }
+
+        function showCustomConfirm(title, message, onConfirm) {
+            dialogConfirmCallback = onConfirm;
+            document.getElementById("dialogIcon").textContent = "⚠️";
+            document.getElementById("dialogTitle").textContent = title;
+            document.getElementById("dialogMessage").textContent = message;
+
+            const btns = document.getElementById("dialogButtons");
+            btns.innerHTML = `
+                <button onclick="closeCustomDialog()" class="px-4 py-2 bg-white/10 rounded-xl font-bold text-xs">
+                    Cancel
+                </button>
+                <button onclick="executeCustomConfirm()" class="theme-btn px-5 py-2 rounded-xl font-bold text-xs">
+                    Confirm
+                </button>
+            `;
+            document.getElementById("customDialogModal").classList.add("modal-active");
+            document.getElementById("customDialogModal").classList.remove("hidden");
+        }
+
+        function executeCustomConfirm() {
+            closeCustomDialog();
+            if (typeof dialogConfirmCallback === 'function') {
+                dialogConfirmCallback();
+            }
+        }
+
+        function closeCustomDialog() {
+            document.getElementById("customDialogModal").classList.remove("modal-active");
+            document.getElementById("customDialogModal").classList.add("hidden");
+            dialogConfirmCallback = null;
+        }
+
+        window.onload = function() {
+            initFireworksCanvas();
+            renderApp();
+            setInterval(renderApp, 15000);
+        };
+    </script>
+</body>
+</html>
