@@ -206,7 +206,7 @@
       font-weight: bold;
     }
 
-    /* Animations */
+    /* Keyframe Animations */
     @keyframes pulse-subtle {
       0%, 100% { transform: scale(1); }
       50% { transform: scale(1.02); }
@@ -240,7 +240,6 @@
           <div class="text-xs opacity-80 flex items-center space-x-1">
             <span>🔥 Streak:</span>
             <span id="streak-counter" class="font-bold text-yellow-400">0 Days</span>
-            <span id="sync-indicator" class="ml-2 text-xs opacity-60">● Local</span>
           </div>
         </div>
       </div>
@@ -557,22 +556,16 @@
 
     function pushToCloud() {
       if (!appData.cloudSyncUrl) return;
-      document.getElementById('sync-indicator').innerText = "☁️ Syncing...";
       fetch(appData.cloudSyncUrl, {
         method: 'POST',
         mode: 'no-cors',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(appData)
-      }).then(() => {
-        document.getElementById('sync-indicator').innerText = "☁️ Synced";
-      }).catch(() => {
-        document.getElementById('sync-indicator').innerText = "⚠️ Sync Error";
-      });
+      }).catch(() => {});
     }
 
     function fetchFromCloud() {
       if (!appData.cloudSyncUrl) return;
-      document.getElementById('sync-indicator').innerText = "☁️ Syncing...";
       fetch(appData.cloudSyncUrl)
         .then(res => res.json())
         .then(data => {
@@ -583,12 +576,9 @@
             applyTheme(appData.activeTheme);
             renderTaskList();
             updateTimerUI();
-            document.getElementById('sync-indicator').innerText = "☁️ Synced";
           }
         })
-        .catch(() => {
-          document.getElementById('sync-indicator').innerText = "☁️ Saved";
-        });
+        .catch(() => {});
     }
 
     // THEME ENGINE
