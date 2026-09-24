@@ -363,7 +363,7 @@
       <!-- EDIT TASKS -->
       <div class="mb-5">
         <div class="flex justify-between items-center mb-2">
-          <label class="block text-xs font-bold text-gray-400">EDIT TASKS (L / R COMPLETIONS)</label>
+          <label class="block text-xs font-bold text-gray-400">EDIT TASKS (W / O COMPLETIONS)</label>
           <button onclick="addNewTask()" class="text-xs bg-green-600 text-white font-bold px-3 py-1 rounded-lg">
             + Add Task
           </button>
@@ -470,65 +470,111 @@
     // AUDIO SYNTHESIZER
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
-    function playSoundEffect(type) {
+    function playNote(freq, type, startTime, duration, vol = 0.2) {
       if (audioCtx.state === 'suspended') audioCtx.resume();
       const osc = audioCtx.createOscillator();
       const gain = audioCtx.createGain();
+      osc.type = type;
+      osc.frequency.setValueAtTime(freq, startTime);
+      gain.gain.setValueAtTime(vol, startTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
       osc.connect(gain);
       gain.connect(audioCtx.destination);
+      osc.start(startTime);
+      osc.stop(startTime + duration);
+    }
+
+    function playSoundEffect(type) {
+      if (audioCtx.state === 'suspended') audioCtx.resume();
       const now = audioCtx.currentTime;
 
       switch(appData.activeTheme) {
         case 'space':
-          osc.type = 'sawtooth';
-          osc.frequency.setValueAtTime(300, now);
-          osc.frequency.exponentialRampToValueAtTime(1200, now + 0.3);
-          gain.gain.setValueAtTime(0.2, now);
-          gain.gain.linearRampToValueAtTime(0.01, now + 0.3);
-          osc.start(now); osc.stop(now + 0.3);
+          playNote(300, 'sawtooth', now, 0.15, 0.2);
+          playNote(800, 'sawtooth', now + 0.08, 0.2, 0.2);
           break;
         case 'pirate':
-          osc.type = 'square';
-          osc.frequency.setValueAtTime(120, now);
-          osc.frequency.exponentialRampToValueAtTime(40, now + 0.4);
-          gain.gain.setValueAtTime(0.4, now);
-          gain.gain.linearRampToValueAtTime(0.01, now + 0.4);
-          osc.start(now); osc.stop(now + 0.4);
+          playNote(150, 'square', now, 0.25, 0.3);
+          playNote(100, 'square', now + 0.1, 0.3, 0.3);
+          break;
+        case 'dino':
+          playNote(90, 'sawtooth', now, 0.4, 0.3);
+          playNote(120, 'sawtooth', now + 0.1, 0.3, 0.2);
+          break;
+        case 'superhero':
+          playNote(400, 'triangle', now, 0.1, 0.25);
+          playNote(600, 'triangle', now + 0.08, 0.1, 0.25);
+          playNote(900, 'triangle', now + 0.16, 0.25, 0.3);
+          break;
+        case 'racing':
+          playNote(200, 'sawtooth', now, 0.1, 0.2);
+          playNote(500, 'sawtooth', now + 0.06, 0.2, 0.25);
+          break;
+        case 'ocean':
+          playNote(523.25, 'sine', now, 0.15, 0.2);
+          playNote(659.25, 'sine', now + 0.1, 0.2, 0.2);
+          break;
+        case 'magic':
+          playNote(880, 'sine', now, 0.1, 0.15);
+          playNote(1318.51, 'sine', now + 0.06, 0.1, 0.15);
+          playNote(1760, 'sine', now + 0.12, 0.25, 0.2);
+          break;
+        case 'agent':
+          playNote(700, 'square', now, 0.05, 0.15);
+          playNote(1000, 'square', now + 0.06, 0.1, 0.15);
           break;
         case 'arcade':
-          osc.type = 'square';
-          osc.frequency.setValueAtTime(600, now);
-          osc.frequency.setValueAtTime(900, now + 0.1);
-          gain.gain.setValueAtTime(0.2, now);
-          gain.gain.linearRampToValueAtTime(0.01, now + 0.25);
-          osc.start(now); osc.stop(now + 0.25);
+          playNote(600, 'square', now, 0.08, 0.2);
+          playNote(900, 'square', now + 0.08, 0.18, 0.2);
+          break;
+        case 'jungle':
+          playNote(180, 'triangle', now, 0.15, 0.3);
+          playNote(260, 'triangle', now + 0.1, 0.2, 0.3);
           break;
         default:
-          osc.type = 'sine';
-          osc.frequency.setValueAtTime(523.25, now);
-          osc.frequency.setValueAtTime(659.25, now + 0.1);
-          gain.gain.setValueAtTime(0.2, now);
-          gain.gain.linearRampToValueAtTime(0.01, now + 0.3);
-          osc.start(now); osc.stop(now + 0.3);
+          playNote(523.25, 'sine', now, 0.15, 0.2);
+          playNote(659.25, 'sine', now + 0.1, 0.2, 0.2);
       }
     }
 
     function playVictorySong() {
       if (audioCtx.state === 'suspended') audioCtx.resume();
-      const notes = [523.25, 659.25, 783.99, 1046.50];
-      notes.forEach((freq, idx) => {
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-        osc.connect(gain);
-        gain.connect(audioCtx.destination);
-        const now = audioCtx.currentTime + (idx * 0.12);
-        osc.type = 'triangle';
-        osc.frequency.setValueAtTime(freq, now);
-        gain.gain.setValueAtTime(0.3, now);
-        gain.gain.linearRampToValueAtTime(0.01, now + 0.3);
-        osc.start(now);
-        osc.stop(now + 0.3);
-      });
+      const now = audioCtx.currentTime;
+
+      switch(appData.activeTheme) {
+        case 'space':
+          [523.25, 659.25, 783.99, 1046.50, 1318.51, 1567.98].forEach((f, i) => playNote(f, 'sawtooth', now + (i * 0.1), 0.3, 0.2));
+          break;
+        case 'pirate':
+          [293.66, 349.23, 440.00, 587.33, 440.00, 587.33].forEach((f, i) => playNote(f, 'square', now + (i * 0.14), 0.3, 0.25));
+          break;
+        case 'dino':
+          [130.81, 164.81, 196.00, 261.63, 329.63].forEach((f, i) => playNote(f, 'sawtooth', now + (i * 0.18), 0.4, 0.3));
+          break;
+        case 'superhero':
+          [261.63, 261.63, 261.63, 349.23, 440.00, 523.25].forEach((f, i) => playNote(f, 'triangle', now + (i * 0.12), 0.35, 0.3));
+          break;
+        case 'racing':
+          [329.63, 392.00, 493.88, 659.25, 783.99].forEach((f, i) => playNote(f, 'sawtooth', now + (i * 0.09), 0.25, 0.2));
+          break;
+        case 'ocean':
+          [392.00, 523.25, 659.25, 783.99, 880.00, 783.99].forEach((f, i) => playNote(f, 'sine', now + (i * 0.13), 0.3, 0.25));
+          break;
+        case 'magic':
+          [659.25, 783.99, 987.77, 1174.66, 1396.91, 1760.00].forEach((f, i) => playNote(f, 'sine', now + (i * 0.08), 0.35, 0.2));
+          break;
+        case 'agent':
+          [329.63, 392.00, 440.00, 466.16, 493.88].forEach((f, i) => playNote(f, 'square', now + (i * 0.15), 0.3, 0.2));
+          break;
+        case 'arcade':
+          [261.63, 329.63, 392.00, 523.25, 659.25, 783.99, 1046.50].forEach((f, i) => playNote(f, 'square', now + (i * 0.09), 0.25, 0.2));
+          break;
+        case 'jungle':
+          [220.00, 277.18, 329.63, 440.00, 554.37].forEach((f, i) => playNote(f, 'triangle', now + (i * 0.14), 0.35, 0.3));
+          break;
+        default:
+          [523.25, 659.25, 783.99, 1046.50].forEach((f, i) => playNote(f, 'triangle', now + (i * 0.12), 0.3, 0.2));
+      }
     }
 
     // DATA & CLOUD ENGINE
@@ -612,7 +658,7 @@
       updateTimerUI();
     }
 
-    // RENDER TASKS WITH DUAL BUTTONS
+    // RENDER TASKS WITH W (BLUE) & O (RAINBOW) BUTTONS
     function renderTaskList() {
       const container = document.getElementById('task-list-container');
       if (!container) return;
@@ -626,21 +672,29 @@
         const card = document.createElement('div');
         card.className = `card-theme p-3 flex items-center justify-between space-x-2 transition-all ${bothDone ? 'opacity-60 scale-[0.98]' : ''}`;
         
+        const leftBtnClass = doneL 
+          ? 'bg-green-500/20 text-green-400 border border-green-500/40 px-4 py-2 rounded-xl font-black text-base' 
+          : 'bg-blue-600 hover:bg-blue-500 text-white font-black text-lg px-4 py-2 rounded-xl shadow-md active:scale-95 transition';
+
+        const rightBtnClass = doneR 
+          ? 'bg-green-500/20 text-green-400 border border-green-500/40 px-4 py-2 rounded-xl font-black text-base' 
+          : 'bg-gradient-to-r from-red-500 via-yellow-400 via-green-400 via-blue-500 to-purple-500 hover:brightness-110 text-white font-black text-lg px-4 py-2 rounded-xl shadow-md active:scale-95 transition';
+
         card.innerHTML = `
-          <!-- LEFT KID BUTTON -->
-          <button onclick="handleTaskTap(${task.id}, 'left')" class="px-3 py-2 rounded-xl font-bold text-xs ${doneL ? 'bg-green-500/20 text-green-400 border border-green-500/40' : 'btn-accent shadow-md active:scale-95'}">
-            ${doneL ? '✅ Done' : '◀ Did It!'}
+          <!-- LEFT KID BUTTON: W (BLUE) -->
+          <button onclick="handleTaskTap(${task.id}, 'left')" class="${leftBtnClass}">
+            ${doneL ? '✅ W' : 'W'}
           </button>
 
           <!-- CENTER EMOJI & TITLE -->
-          <div class="flex items-center space-x-2 flex-1 justify-center text-center">
+          <div class="flex items-center space-x-2 flex-1 justify-center text-center px-2">
             <span class="text-2xl">${task.emoji}</span>
             <span class="font-bold text-base leading-tight ${bothDone ? 'line-through text-green-400' : ''}">${task.title}</span>
           </div>
 
-          <!-- RIGHT KID BUTTON -->
-          <button onclick="handleTaskTap(${task.id}, 'right')" class="px-3 py-2 rounded-xl font-bold text-xs ${doneR ? 'bg-green-500/20 text-green-400 border border-green-500/40' : 'btn-accent shadow-md active:scale-95'}">
-            ${doneR ? '✅ Done' : 'Did It! ▶'}
+          <!-- RIGHT KID BUTTON: O (RAINBOW) -->
+          <button onclick="handleTaskTap(${task.id}, 'right')" class="${rightBtnClass}">
+            ${doneR ? '✅ O' : 'O'}
           </button>
         `;
         container.appendChild(card);
@@ -845,7 +899,6 @@
         const bonus = calculateBonusPlayTime();
         document.getElementById('time-bank-disp').innerHTML = `⏱️ Play Time Saved: <span class="text-green-400">${bonus} Mins</span>`;
         
-        // Progress bar accounts for total buttons (tasks * 2)
         const totalButtons = appData.tasks.length * 2;
         const doneCount = appData.tasks.reduce((acc, t) => acc + (isTaskDoneLeft(t) ? 1 : 0) + (isTaskDoneRight(t) ? 1 : 0), 0);
         const pct = Math.round((doneCount / totalButtons) * 100);
@@ -889,11 +942,11 @@
         row.innerHTML = `
           <input type="text" value="${task.emoji}" onchange="updateTaskEmoji(${task.id}, this.value)" class="w-8 text-center bg-gray-900 border border-gray-700 rounded-lg p-1 text-sm" />
           <input type="text" value="${task.title}" onchange="updateTaskTitle(${task.id}, this.value)" class="flex-1 bg-gray-900 border border-gray-700 rounded-lg p-1 text-xs text-white font-bold" />
-          <button onclick="toggleTaskDoneParent(${task.id}, 'left')" class="p-1.5 font-bold rounded-lg ${doneL ? 'bg-green-600 text-white' : 'bg-gray-700 text-gray-400'}">
-            L:${doneL ? '✓' : '◯'}
+          <button onclick="toggleTaskDoneParent(${task.id}, 'left')" class="p-1.5 font-bold rounded-lg ${doneL ? 'bg-blue-600 text-white' : 'bg-gray-700 text-gray-400'}">
+            W:${doneL ? '✓' : '◯'}
           </button>
-          <button onclick="toggleTaskDoneParent(${task.id}, 'right')" class="p-1.5 font-bold rounded-lg ${doneR ? 'bg-green-600 text-white' : 'bg-gray-700 text-gray-400'}">
-            R:${doneR ? '✓' : '◯'}
+          <button onclick="toggleTaskDoneParent(${task.id}, 'right')" class="p-1.5 font-bold rounded-lg ${doneR ? 'bg-purple-600 text-white' : 'bg-gray-700 text-gray-400'}">
+            O:${doneR ? '✓' : '◯'}
           </button>
           <button onclick="deleteTask(${task.id})" class="text-red-400 p-1">🗑️</button>
         `;
