@@ -373,7 +373,7 @@
         </div>
       </div>
 
-      <!-- EDIT TASKS -->
+      <!-- EDIT TASKS & REORDERING -->
       <div class="mb-5 border-t border-gray-800 pt-4">
         <div class="flex justify-between items-center mb-2">
           <label class="block text-xs font-bold text-gray-400">EDIT TASKS & OVERRIDES</label>
@@ -382,7 +382,7 @@
           </button>
         </div>
         <div id="parent-task-editor" class="space-y-2">
-          <!-- Dynamically populated editor rows -->
+          <!-- Dynamically populated editor rows with ▲ / ▼ controls -->
         </div>
       </div>
 
@@ -597,7 +597,6 @@
         } catch(e) { console.error(e); }
       }
 
-      // Ensure kids array exists
       if (!appData.kids || !Array.isArray(appData.kids) || appData.kids.length === 0) {
         appData.kids = [
           { id: 'kid_0', name: 'Kid 1', label: 'W', color: 'blue' },
@@ -605,7 +604,6 @@
         ];
       }
 
-      // Migrate older tasks structure if needed
       appData.tasks.forEach(t => {
         if (!t.completions) t.completions = {};
         if (t.doneLeft !== undefined) {
@@ -706,7 +704,7 @@
       return `${base} font-black text-base px-3.5 py-1.5 rounded-xl shadow-md active:scale-95 transition`;
     }
 
-    // RENDER TASKS DYNAMICALLY (1 TO 3 KIDS)
+    // RENDER TASKS DYNAMICALLY
     function renderTaskList() {
       const container = document.getElementById('task-list-container');
       if (!container) return;
@@ -1008,7 +1006,7 @@
       setTimeout(() => fxInstance.stop(), 8000);
     }
 
-    // PARENT EDITOR & KIDS CONFIGURATION
+    // PARENT EDITOR & TASK REORDERING
     function closeParentModal() {
       document.getElementById('parent-modal').classList.add('hidden');
       renderTaskList();
@@ -1049,11 +1047,34 @@
       }
     }
 
+    function moveTaskUp(id) {
+      const index = appData.tasks.findIndex(t => t.id === id);
+      if (index > 0) {
+        const temp = appData.tasks[index];
+        appData.tasks[index] = appData.tasks[index - 1];
+        appData.tasks[index - 1] = temp;
+        saveData();
+        renderParentEditor();
+        renderTaskList();
+      }
+    }
+
+    function moveTaskDown(id) {
+      const index = appData.tasks.findIndex(t => t.id === id);
+      if (index >= 0 && index < appData.tasks.length - 1) {
+        const temp = appData.tasks[index];
+        appData.tasks[index] = appData.tasks[index + 1];
+        appData.tasks[index + 1] = temp;
+        saveData();
+        renderParentEditor();
+        renderTaskList();
+      }
+    }
+
     function renderParentEditor() {
       document.getElementById('target-time-input').value = appData.targetTime;
       document.getElementById('cloud-sync-url-input').value = appData.cloudSyncUrl || "";
 
-      // Highlight active Kid Count Button
       [1, 2, 3].forEach(n => {
         const btn = document.getElementById(`btn-num-kids-${n}`);
         if (btn) {
@@ -1065,7 +1086,6 @@
         }
       });
 
-      // Render Kids Config Editor Rows
       const kidsConfigContainer = document.getElementById('kids-config-editor');
       if (kidsConfigContainer) {
         kidsConfigContainer.innerHTML = "";
@@ -1090,13 +1110,15 @@
         });
       }
 
-      // Render Task Editor Rows
       const editor = document.getElementById('parent-task-editor');
       if (!editor) return;
       editor.innerHTML = "";
 
-      appData.tasks.forEach((task) => {
+      appData.tasks.forEach((task, index) => {
         if (!task.completions) task.completions = {};
+        const isFirst = index === 0;
+        const isLast = index === appData.tasks.length - 1;
+
         const row = document.createElement('div');
         row.className = "flex items-center space-x-1.5 bg-gray-800 p-2 rounded-xl border border-gray-700 text-xs";
 
@@ -1110,6 +1132,10 @@
         }).join("");
 
         row.innerHTML = `
+          <div class="flex flex-col space-y-0.5">
+            <button onclick="moveTaskUp(${task.id})" class="text-[10px] bg-gray-700 hover:bg-gray-600 px-1 py-0.5 rounded leading-none ${isFirst ? 'opacity-30 cursor-not-allowed' : ''}" ${isFirst ? 'disabled' : ''}>▲</button>
+            <button onclick="moveTaskDown(${task.id})" class="text-[10px] bg-gray-700 hover:bg-gray-600 px-1 py-0.5 rounded leading-none ${isLast ? 'opacity-30 cursor-not-allowed' : ''}" ${isLast ? 'disabled' : ''}>▼</button>
+          </div>
           <input type="text" value="${task.emoji}" onchange="updateTaskEmoji(${task.id}, this.value)" class="w-8 text-center bg-gray-900 border border-gray-700 rounded-lg p-1 text-sm" />
           <input type="text" value="${task.title}" onchange="updateTaskTitle(${task.id}, this.value)" class="flex-1 bg-gray-900 border border-gray-700 rounded-lg p-1 text-xs text-white font-bold min-w-0" />
           ${kidTogglesHtml}
