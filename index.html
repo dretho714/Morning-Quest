@@ -360,10 +360,23 @@
         <input type="time" id="target-time-input" value="08:00" onchange="saveTargetTime(this.value)" class="w-full bg-gray-800 border border-gray-700 rounded-xl p-3 text-sm text-white font-bold" />
       </div>
 
+      <!-- KIDS CONFIGURATION -->
+      <div class="mb-5 border-t border-gray-800 pt-4">
+        <label class="block text-xs font-bold text-gray-400 mb-2">KIDS CONFIGURATION (1 TO 3 KIDS)</label>
+        <div class="flex space-x-2 mb-3">
+          <button onclick="setNumKids(1)" id="btn-num-kids-1" class="flex-1 py-2 bg-gray-800 text-xs font-bold rounded-xl border border-gray-700 text-gray-300">1 Kid</button>
+          <button onclick="setNumKids(2)" id="btn-num-kids-2" class="flex-1 py-2 bg-gray-800 text-xs font-bold rounded-xl border border-gray-700 text-gray-300">2 Kids</button>
+          <button onclick="setNumKids(3)" id="btn-num-kids-3" class="flex-1 py-2 bg-gray-800 text-xs font-bold rounded-xl border border-gray-700 text-gray-300">3 Kids</button>
+        </div>
+        <div id="kids-config-editor" class="space-y-2">
+          <!-- Dynamic Kid Button Config Rows -->
+        </div>
+      </div>
+
       <!-- EDIT TASKS -->
-      <div class="mb-5">
+      <div class="mb-5 border-t border-gray-800 pt-4">
         <div class="flex justify-between items-center mb-2">
-          <label class="block text-xs font-bold text-gray-400">EDIT TASKS (W / O COMPLETIONS)</label>
+          <label class="block text-xs font-bold text-gray-400">EDIT TASKS & OVERRIDES</label>
           <button onclick="addNewTask()" class="text-xs bg-green-600 text-white font-bold px-3 py-1 rounded-lg">
             + Add Task
           </button>
@@ -373,10 +386,13 @@
         </div>
       </div>
 
-      <!-- HUNT RESET OVERRIDE -->
-      <div class="mb-5">
-        <button onclick="resetMorningHunt(); closeParentModal();" class="w-full py-2 bg-red-900/50 text-red-300 border border-red-700 rounded-xl font-bold text-xs">
+      <!-- HUNT & WEEKLY RESETS -->
+      <div class="mb-5 border-t border-gray-800 pt-4 space-y-2">
+        <button onclick="resetMorningHunt(); closeParentModal();" class="w-full py-2 bg-red-900/40 text-red-300 border border-red-700 rounded-xl font-bold text-xs">
           ↺ Reset Today's Hunt State
+        </button>
+        <button onclick="resetFullWeekAndStreaks();" class="w-full py-2 bg-red-950 text-red-400 border border-red-800 rounded-xl font-bold text-xs">
+          ⚠️ Reset Full Week & Streaks
         </button>
       </div>
 
@@ -393,7 +409,7 @@
         </div>
       </div>
 
-      <!-- GOOGLE CLOUD SYNC SETTINGS (AT BOTTOM) -->
+      <!-- GOOGLE CLOUD SYNC SETTINGS -->
       <div class="p-3 bg-gray-800/80 border border-purple-500/30 rounded-xl">
         <label class="block text-xs font-bold text-purple-300 mb-1">☁️ GOOGLE SHEETS AUTO-SYNC URL</label>
         <p class="text-[10px] text-gray-400 mb-2">Paste your Google Apps Script Web App URL here to keep both phones auto-synced.</p>
@@ -442,30 +458,25 @@
       huntStartTime: null,
       huntEndTime: null,
       weeklyStats: { Mon: 0, Tue: 0, Wed: 0, Thu: 0, Fri: 0 },
+      kids: [
+        { id: 'kid_0', name: 'Kid 1', label: 'W', color: 'blue' },
+        { id: 'kid_1', name: 'Kid 2', label: 'O', color: 'rainbow' }
+      ],
       tasks: [
-        { id: 1, title: "Make Bed", emoji: "🛏️", doneLeft: false, doneRight: false },
-        { id: 2, title: "Put On Clothes", emoji: "👕", doneLeft: false, doneRight: false },
-        { id: 3, title: "Eat Breakfast", emoji: "🥣", doneLeft: false, doneRight: false },
-        { id: 4, title: "Brush Teeth", emoji: "🪥", doneLeft: false, doneRight: false },
-        { id: 5, title: "Put On Shoes & Backpack", emoji: "🎒", doneLeft: false, doneRight: false }
+        { id: 1, title: "Make Bed", emoji: "🛏️", completions: {} },
+        { id: 2, title: "Put On Clothes", emoji: "👕", completions: {} },
+        { id: 3, title: "Eat Breakfast", emoji: "🥣", completions: {} },
+        { id: 4, title: "Brush Teeth", emoji: "🪥", completions: {} },
+        { id: 5, title: "Put On Shoes & Backpack", emoji: "🎒", completions: {} }
       ]
     };
 
     let appData = JSON.parse(JSON.stringify(DEFAULT_CONFIG));
     let pinMode = null; // 'TASK' or 'SETTINGS'
     let pendingTaskId = null;
-    let pendingTaskSide = null; // 'left' or 'right'
+    let pendingKidId = null;
     let pinBuffer = "";
     let fxInstance = null;
-
-    // HELPERS: STRICT DUAL-SIDE TASK CHECKS
-    function isTaskDoneLeft(task) {
-      return task && (task.doneLeft === true || task.doneLeft === "true" || task.doneLeft === 1);
-    }
-
-    function isTaskDoneRight(task) {
-      return task && (task.doneRight === true || task.doneRight === "true" || task.doneRight === 1);
-    }
 
     // AUDIO SYNTHESIZER
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -583,12 +594,34 @@
       if (stored) {
         try { 
           appData = Object.assign({}, DEFAULT_CONFIG, JSON.parse(stored));
-          appData.tasks.forEach(t => {
-            t.doneLeft = isTaskDoneLeft(t);
-            t.doneRight = isTaskDoneRight(t);
-          });
         } catch(e) { console.error(e); }
       }
+
+      // Ensure kids array exists
+      if (!appData.kids || !Array.isArray(appData.kids) || appData.kids.length === 0) {
+        appData.kids = [
+          { id: 'kid_0', name: 'Kid 1', label: 'W', color: 'blue' },
+          { id: 'kid_1', name: 'Kid 2', label: 'O', color: 'rainbow' }
+        ];
+      }
+
+      // Migrate older tasks structure if needed
+      appData.tasks.forEach(t => {
+        if (!t.completions) t.completions = {};
+        if (t.doneLeft !== undefined) {
+          t.completions['kid_0'] = t.doneLeft === true || t.doneLeft === "true";
+          delete t.doneLeft;
+        }
+        if (t.doneRight !== undefined) {
+          t.completions['kid_1'] = t.doneRight === true || t.doneRight === "true";
+          delete t.doneRight;
+        }
+        if (t.done !== undefined && typeof t.done === 'boolean') {
+          t.completions['kid_0'] = t.done;
+          delete t.done;
+        }
+      });
+
       applyTheme(appData.activeTheme);
       renderTaskList();
       updateTimerUI();
@@ -625,10 +658,6 @@
         .then(data => {
           if (data && Array.isArray(data.tasks)) {
             appData = Object.assign({}, DEFAULT_CONFIG, data);
-            appData.tasks.forEach(t => {
-              t.doneLeft = isTaskDoneLeft(t);
-              t.doneRight = isTaskDoneRight(t);
-            });
             localStorage.setItem('morning_quest_data', JSON.stringify(appData));
             applyTheme(appData.activeTheme);
             renderTaskList();
@@ -658,44 +687,79 @@
       updateTimerUI();
     }
 
-    // RENDER TASKS WITH W (BLUE) & O (RAINBOW) BUTTONS
+    // BUTTON STYLES PROVIDER
+    function getKidBtnStyle(colorKey, isDone) {
+      if (isDone) {
+        return "bg-green-500/20 text-green-400 border border-green-500/40 px-3 py-1.5 rounded-xl font-black text-sm";
+      }
+      const styles = {
+        blue: "bg-blue-600 hover:bg-blue-500 text-white",
+        rainbow: "bg-gradient-to-r from-red-500 via-yellow-400 via-green-400 via-blue-500 to-purple-500 hover:brightness-110 text-white",
+        red: "bg-red-600 hover:bg-red-500 text-white",
+        green: "bg-emerald-600 hover:bg-emerald-500 text-white",
+        purple: "bg-purple-600 hover:bg-purple-500 text-white",
+        orange: "bg-orange-500 hover:bg-orange-400 text-white",
+        pink: "bg-pink-500 hover:bg-pink-400 text-white",
+        gold: "bg-amber-400 hover:bg-amber-300 text-black"
+      };
+      const base = styles[colorKey] || styles.blue;
+      return `${base} font-black text-base px-3.5 py-1.5 rounded-xl shadow-md active:scale-95 transition`;
+    }
+
+    // RENDER TASKS DYNAMICALLY (1 TO 3 KIDS)
     function renderTaskList() {
       const container = document.getElementById('task-list-container');
       if (!container) return;
       container.innerHTML = "";
 
+      const kids = appData.kids || [];
+
       appData.tasks.forEach((task) => {
-        const doneL = isTaskDoneLeft(task);
-        const doneR = isTaskDoneRight(task);
-        const bothDone = doneL && doneR;
+        if (!task.completions) task.completions = {};
+        const allKidsDone = kids.length > 0 && kids.every(k => task.completions[k.id] === true);
 
         const card = document.createElement('div');
-        card.className = `card-theme p-3 flex items-center justify-between space-x-2 transition-all ${bothDone ? 'opacity-60 scale-[0.98]' : ''}`;
+        card.className = `card-theme p-3 flex items-center justify-between space-x-2 transition-all ${allKidsDone ? 'opacity-60 scale-[0.98]' : ''}`;
         
-        const leftBtnClass = doneL 
-          ? 'bg-green-500/20 text-green-400 border border-green-500/40 px-4 py-2 rounded-xl font-black text-base' 
-          : 'bg-blue-600 hover:bg-blue-500 text-white font-black text-lg px-4 py-2 rounded-xl shadow-md active:scale-95 transition';
+        let leftBtnsHtml = "";
+        let rightBtnsHtml = "";
 
-        const rightBtnClass = doneR 
-          ? 'bg-green-500/20 text-green-400 border border-green-500/40 px-4 py-2 rounded-xl font-black text-base' 
-          : 'bg-gradient-to-r from-red-500 via-yellow-400 via-green-400 via-blue-500 to-purple-500 hover:brightness-110 text-white font-black text-lg px-4 py-2 rounded-xl shadow-md active:scale-95 transition';
+        if (kids.length === 1) {
+          const k = kids[0];
+          const done = task.completions[k.id] === true;
+          rightBtnsHtml = `<button onclick="handleTaskTap(${task.id}, '${k.id}')" class="${getKidBtnStyle(k.color, done)}">${done ? '✅ ' + k.label : k.label}</button>`;
+        } else if (kids.length === 2) {
+          const k0 = kids[0];
+          const k1 = kids[1];
+          const done0 = task.completions[k0.id] === true;
+          const done1 = task.completions[k1.id] === true;
+
+          leftBtnsHtml = `<button onclick="handleTaskTap(${task.id}, '${k0.id}')" class="${getKidBtnStyle(k0.color, done0)}">${done0 ? '✅ ' + k0.label : k0.label}</button>`;
+          rightBtnsHtml = `<button onclick="handleTaskTap(${task.id}, '${k1.id}')" class="${getKidBtnStyle(k1.color, done1)}">${done1 ? '✅ ' + k1.label : k1.label}</button>`;
+        } else if (kids.length === 3) {
+          const k0 = kids[0];
+          const k1 = kids[1];
+          const k2 = kids[2];
+          const done0 = task.completions[k0.id] === true;
+          const done1 = task.completions[k1.id] === true;
+          const done2 = task.completions[k2.id] === true;
+
+          leftBtnsHtml = `<button onclick="handleTaskTap(${task.id}, '${k0.id}')" class="${getKidBtnStyle(k0.color, done0)}">${done0 ? '✅ ' + k0.label : k0.label}</button>`;
+          rightBtnsHtml = `
+            <div class="flex items-center space-x-1.5">
+              <button onclick="handleTaskTap(${task.id}, '${k1.id}')" class="${getKidBtnStyle(k1.color, done1)}">${done1 ? '✅ ' + k1.label : k1.label}</button>
+              <button onclick="handleTaskTap(${task.id}, '${k2.id}')" class="${getKidBtnStyle(k2.color, done2)}">${done2 ? '✅ ' + k2.label : k2.label}</button>
+            </div>
+          `;
+        }
 
         card.innerHTML = `
-          <!-- LEFT KID BUTTON: W (BLUE) -->
-          <button onclick="handleTaskTap(${task.id}, 'left')" class="${leftBtnClass}">
-            ${doneL ? '✅ W' : 'W'}
-          </button>
-
-          <!-- CENTER EMOJI & TITLE -->
-          <div class="flex items-center space-x-2 flex-1 justify-center text-center px-2">
-            <span class="text-2xl">${task.emoji}</span>
-            <span class="font-bold text-base leading-tight ${bothDone ? 'line-through text-green-400' : ''}">${task.title}</span>
+          ${leftBtnsHtml}
+          <div class="flex items-center space-x-2 flex-1 justify-center text-center px-1 min-w-0">
+            <span class="text-2xl flex-shrink-0">${task.emoji}</span>
+            <span class="font-bold text-sm sm:text-base leading-tight truncate ${allKidsDone ? 'line-through text-green-400' : ''}">${task.title}</span>
           </div>
-
-          <!-- RIGHT KID BUTTON: O (RAINBOW) -->
-          <button onclick="handleTaskTap(${task.id}, 'right')" class="${rightBtnClass}">
-            ${doneR ? '✅ O' : 'O'}
-          </button>
+          ${rightBtnsHtml}
         `;
         container.appendChild(card);
       });
@@ -703,12 +767,11 @@
       document.getElementById('streak-counter').innerText = `${appData.streak} Days`;
     }
 
-    function handleTaskTap(taskId, side) {
+    function handleTaskTap(taskId, kidId) {
       const task = appData.tasks.find(t => t.id === taskId);
       if (!task) return;
 
-      const isDone = side === 'left' ? isTaskDoneLeft(task) : isTaskDoneRight(task);
-      if (isDone) {
+      if (task.completions && task.completions[kidId] === true) {
         showToast("⭐ Task side already completed!");
         return;
       }
@@ -719,14 +782,14 @@
         updateTimerUI();
       }
 
-      openPinModalForTask(taskId, side);
+      openPinModalForTask(taskId, kidId);
     }
 
     // PIN MODAL ENGINE
-    function openPinModalForTask(taskId, side) {
+    function openPinModalForTask(taskId, kidId) {
       pinMode = 'TASK';
       pendingTaskId = taskId;
-      pendingTaskSide = side;
+      pendingKidId = kidId;
       pinBuffer = "";
       updatePinDisplay();
       document.getElementById('pin-modal-subtitle').innerText = "Enter PIN to approve task completion";
@@ -736,7 +799,7 @@
     function openParentModal() {
       pinMode = 'SETTINGS';
       pendingTaskId = null;
-      pendingTaskSide = null;
+      pendingKidId = null;
       pinBuffer = "";
       updatePinDisplay();
       document.getElementById('pin-modal-subtitle').innerText = "Enter PIN for Parent Settings";
@@ -768,13 +831,13 @@
         if (pinBuffer === appData.pin) {
           const currentMode = pinMode;
           const targetTaskId = pendingTaskId;
-          const targetSide = pendingTaskSide;
+          const targetKidId = pendingKidId;
           closePinModal();
           pendingTaskId = null;
-          pendingTaskSide = null;
+          pendingKidId = null;
 
           if (currentMode === 'TASK') {
-            approvePendingTask(targetTaskId, targetSide);
+            approvePendingTask(targetTaskId, targetKidId);
           } else if (currentMode === 'SETTINGS') {
             renderParentEditor();
             document.getElementById('parent-modal').classList.remove('hidden');
@@ -792,12 +855,12 @@
       updatePinDisplay();
     }
 
-    function approvePendingTask(taskId, side) {
-      if (!taskId || !side) return;
+    function approvePendingTask(taskId, kidId) {
+      if (!taskId || !kidId) return;
       const task = appData.tasks.find(t => t.id === taskId);
       if (task) {
-        if (side === 'left') task.doneLeft = true;
-        if (side === 'right') task.doneRight = true;
+        if (!task.completions) task.completions = {};
+        task.completions[kidId] = true;
         playSoundEffect('task');
         confetti({ particleCount: 50, spread: 70, origin: { y: 0.6 } });
         saveData();
@@ -809,7 +872,7 @@
 
     // HUNT MANAGEMENT
     function startMorningHunt() {
-      appData.tasks.forEach(t => { t.doneLeft = false; t.doneRight = false; t.done = false; });
+      appData.tasks.forEach(t => { t.completions = {}; });
       appData.huntStartTime = new Date().toISOString();
       appData.huntEndTime = null;
       saveData();
@@ -819,7 +882,7 @@
     }
 
     function resetMorningHunt() {
-      appData.tasks.forEach(t => { t.doneLeft = false; t.doneRight = false; t.done = false; });
+      appData.tasks.forEach(t => { t.completions = {}; });
       appData.huntStartTime = null;
       appData.huntEndTime = null;
       saveData();
@@ -828,8 +891,24 @@
       showToast("↺ Today's Hunt Reset!");
     }
 
+    function resetFullWeekAndStreaks() {
+      if (confirm("Are you sure you want to reset the streak counter, weekly scoreboard, and current hunt?")) {
+        appData.streak = 0;
+        appData.lastCompletedDate = null;
+        appData.weeklyStats = { Mon: 0, Tue: 0, Wed: 0, Thu: 0, Fri: 0 };
+        resetMorningHunt();
+        saveData();
+        renderParentEditor();
+        showToast("↺ Full Week & Streaks Reset!");
+      }
+    }
+
     function checkHuntCompletion() {
-      const allDone = appData.tasks.length > 0 && appData.tasks.every(t => isTaskDoneLeft(t) && isTaskDoneRight(t));
+      const kids = appData.kids || [];
+      const allDone = appData.tasks.length > 0 && appData.tasks.every(t => {
+        return kids.every(k => t.completions && t.completions[k.id] === true);
+      });
+
       if (allDone && !appData.huntEndTime) {
         appData.huntEndTime = new Date().toISOString();
         
@@ -880,7 +959,10 @@
         return;
       }
 
-      const allDone = appData.tasks.length > 0 && appData.tasks.every(t => isTaskDoneLeft(t) && isTaskDoneRight(t));
+      const kids = appData.kids || [];
+      const allDone = appData.tasks.length > 0 && appData.tasks.every(t => {
+        return kids.every(k => t.completions && t.completions[k.id] === true);
+      });
 
       notStarted.classList.add('hidden');
 
@@ -899,9 +981,15 @@
         const bonus = calculateBonusPlayTime();
         document.getElementById('time-bank-disp').innerHTML = `⏱️ Play Time Saved: <span class="text-green-400">${bonus} Mins</span>`;
         
-        const totalButtons = appData.tasks.length * 2;
-        const doneCount = appData.tasks.reduce((acc, t) => acc + (isTaskDoneLeft(t) ? 1 : 0) + (isTaskDoneRight(t) ? 1 : 0), 0);
-        const pct = Math.round((doneCount / totalButtons) * 100);
+        const totalButtons = appData.tasks.length * kids.length;
+        let doneCount = 0;
+        appData.tasks.forEach(t => {
+          kids.forEach(k => {
+            if (t.completions && t.completions[k.id] === true) doneCount++;
+          });
+        });
+
+        const pct = totalButtons > 0 ? Math.round((doneCount / totalButtons) * 100) : 0;
         document.getElementById('progress-bar-fill').style.width = `${pct}%`;
       }
 
@@ -920,34 +1008,111 @@
       setTimeout(() => fxInstance.stop(), 8000);
     }
 
-    // PARENT EDITOR
+    // PARENT EDITOR & KIDS CONFIGURATION
     function closeParentModal() {
       document.getElementById('parent-modal').classList.add('hidden');
       renderTaskList();
       updateTimerUI();
     }
 
+    function setNumKids(count) {
+      const defaultPresets = [
+        { id: 'kid_0', name: 'Kid 1', label: 'W', color: 'blue' },
+        { id: 'kid_1', name: 'Kid 2', label: 'O', color: 'rainbow' },
+        { id: 'kid_2', name: 'Kid 3', label: 'A', color: 'green' }
+      ];
+
+      while (appData.kids.length < count) {
+        appData.kids.push(defaultPresets[appData.kids.length]);
+      }
+      if (appData.kids.length > count) {
+        appData.kids = appData.kids.slice(0, count);
+      }
+
+      saveData();
+      renderParentEditor();
+    }
+
+    function updateKidLabel(kidId, val) {
+      const k = appData.kids.find(item => item.id === kidId);
+      if (k) {
+        k.label = val.trim() || 'K';
+        saveData();
+      }
+    }
+
+    function updateKidColor(kidId, val) {
+      const k = appData.kids.find(item => item.id === kidId);
+      if (k) {
+        k.color = val;
+        saveData();
+      }
+    }
+
     function renderParentEditor() {
       document.getElementById('target-time-input').value = appData.targetTime;
       document.getElementById('cloud-sync-url-input').value = appData.cloudSyncUrl || "";
+
+      // Highlight active Kid Count Button
+      [1, 2, 3].forEach(n => {
+        const btn = document.getElementById(`btn-num-kids-${n}`);
+        if (btn) {
+          if (appData.kids.length === n) {
+            btn.className = "flex-1 py-2 bg-purple-600 text-white font-bold text-xs rounded-xl shadow-md";
+          } else {
+            btn.className = "flex-1 py-2 bg-gray-800 text-gray-400 font-bold text-xs rounded-xl border border-gray-700";
+          }
+        }
+      });
+
+      // Render Kids Config Editor Rows
+      const kidsConfigContainer = document.getElementById('kids-config-editor');
+      if (kidsConfigContainer) {
+        kidsConfigContainer.innerHTML = "";
+        appData.kids.forEach((k, idx) => {
+          const row = document.createElement('div');
+          row.className = "flex items-center space-x-2 bg-gray-800 p-2 rounded-xl border border-gray-700 text-xs";
+          row.innerHTML = `
+            <span class="font-bold text-gray-400 w-12">Kid ${idx+1}:</span>
+            <input type="text" value="${k.label}" maxlength="4" placeholder="Label" onchange="updateKidLabel('${k.id}', this.value)" class="w-14 bg-gray-900 border border-gray-700 rounded-lg p-1.5 text-center font-bold text-white text-xs" />
+            <select onchange="updateKidColor('${k.id}', this.value)" class="flex-1 bg-gray-900 border border-gray-700 rounded-lg p-1.5 text-xs text-white font-bold">
+              <option value="blue" ${k.color==='blue'?'selected':''}>🔵 Blue</option>
+              <option value="rainbow" ${k.color==='rainbow'?'selected':''}>🌈 Rainbow</option>
+              <option value="red" ${k.color==='red'?'selected':''}>🔴 Red</option>
+              <option value="green" ${k.color==='green'?'selected':''}>🟢 Green</option>
+              <option value="purple" ${k.color==='purple'?'selected':''}>🟣 Purple</option>
+              <option value="orange" ${k.color==='orange'?'selected':''}>🟠 Orange</option>
+              <option value="pink" ${k.color==='pink'?'selected':''}>🩷 Pink</option>
+              <option value="gold" ${k.color==='gold'?'selected':''}>🟡 Gold</option>
+            </select>
+          `;
+          kidsConfigContainer.appendChild(row);
+        });
+      }
+
+      // Render Task Editor Rows
       const editor = document.getElementById('parent-task-editor');
       if (!editor) return;
       editor.innerHTML = "";
 
       appData.tasks.forEach((task) => {
-        const doneL = isTaskDoneLeft(task);
-        const doneR = isTaskDoneRight(task);
+        if (!task.completions) task.completions = {};
         const row = document.createElement('div');
         row.className = "flex items-center space-x-1.5 bg-gray-800 p-2 rounded-xl border border-gray-700 text-xs";
+
+        let kidTogglesHtml = appData.kids.map(k => {
+          const isDone = task.completions[k.id] === true;
+          return `
+            <button onclick="toggleTaskDoneParent(${task.id}, '${k.id}')" class="px-2 py-1 font-bold rounded-lg text-[10px] ${isDone ? 'bg-green-600 text-white' : 'bg-gray-700 text-gray-400'}">
+              ${k.label}:${isDone ? '✓' : '◯'}
+            </button>
+          `;
+        }).join("");
+
         row.innerHTML = `
           <input type="text" value="${task.emoji}" onchange="updateTaskEmoji(${task.id}, this.value)" class="w-8 text-center bg-gray-900 border border-gray-700 rounded-lg p-1 text-sm" />
-          <input type="text" value="${task.title}" onchange="updateTaskTitle(${task.id}, this.value)" class="flex-1 bg-gray-900 border border-gray-700 rounded-lg p-1 text-xs text-white font-bold" />
-          <button onclick="toggleTaskDoneParent(${task.id}, 'left')" class="p-1.5 font-bold rounded-lg ${doneL ? 'bg-blue-600 text-white' : 'bg-gray-700 text-gray-400'}">
-            W:${doneL ? '✓' : '◯'}
-          </button>
-          <button onclick="toggleTaskDoneParent(${task.id}, 'right')" class="p-1.5 font-bold rounded-lg ${doneR ? 'bg-purple-600 text-white' : 'bg-gray-700 text-gray-400'}">
-            O:${doneR ? '✓' : '◯'}
-          </button>
+          <input type="text" value="${task.title}" onchange="updateTaskTitle(${task.id}, this.value)" class="flex-1 bg-gray-900 border border-gray-700 rounded-lg p-1 text-xs text-white font-bold min-w-0" />
+          ${kidTogglesHtml}
           <button onclick="deleteTask(${task.id})" class="text-red-400 p-1">🗑️</button>
         `;
         editor.appendChild(row);
@@ -964,11 +1129,11 @@
       if (task) { task.title = val; saveData(); }
     }
 
-    function toggleTaskDoneParent(id, side) {
+    function toggleTaskDoneParent(id, kidId) {
       const task = appData.tasks.find(t => t.id === id);
       if (task) {
-        if (side === 'left') task.doneLeft = !isTaskDoneLeft(task);
-        if (side === 'right') task.doneRight = !isTaskDoneRight(task);
+        if (!task.completions) task.completions = {};
+        task.completions[kidId] = !(task.completions[kidId] === true);
         checkHuntCompletion();
         saveData();
         renderParentEditor();
@@ -977,7 +1142,7 @@
 
     function addNewTask() {
       const newId = Date.now();
-      appData.tasks.push({ id: newId, title: "New Task", emoji: "⭐", doneLeft: false, doneRight: false });
+      appData.tasks.push({ id: newId, title: "New Task", emoji: "⭐", completions: {} });
       saveData();
       renderParentEditor();
     }
@@ -1043,10 +1208,6 @@
       if (str) {
         try {
           appData = JSON.parse(str);
-          appData.tasks.forEach(t => {
-            t.doneLeft = isTaskDoneLeft(t);
-            t.doneRight = isTaskDoneRight(t);
-          });
           saveData();
           applyTheme(appData.activeTheme);
           closeParentModal();
