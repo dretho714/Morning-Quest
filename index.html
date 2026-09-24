@@ -263,7 +263,7 @@
           <span id="elapsed-time-disp">Duration: 0m</span>
         </div>
         <div class="text-xl font-black my-1" id="time-bank-disp">
-          ⏱️ Play Time Saved: <span class="text-green-400">0 Mins</span> 🎯
+          🥕 Feed the Horse: <span class="text-green-400">0 Carrots</span> 🐴
         </div>
         
         <!-- PROGRESS BAR FLANKED BY EDITABLE EMOJIS -->
@@ -282,7 +282,7 @@
 
       <div id="hunt-completed" class="hidden">
         <div class="text-xl font-bold text-yellow-300 mb-1">🎉 QUEST COMPLETE! 🎉</div>
-        <p class="text-sm mb-3" id="hunt-completed-summary">You unlocked 0 Mins of Free Play Time!</p>
+        <p class="text-sm mb-3" id="hunt-completed-summary">You unlocked 0 Carrots for Feed the Horse! 🐴</p>
         <button onclick="triggerPlayTimeCelebration()" class="w-full py-3 px-4 bg-yellow-400 text-black font-black text-lg rounded-xl shadow-lg active:scale-95 transition mb-2">
           🚀 START REWARD TIME! 🎆
         </button>
@@ -382,20 +382,15 @@
           </div>
         </div>
 
-        <div class="grid grid-cols-3 gap-2 mb-2">
+        <div class="grid grid-cols-3 gap-2">
           <div class="col-span-2">
             <span class="text-[10px] text-gray-400 block mb-1">Goal / Activity Name</span>
-            <input type="text" id="prize-name-input" placeholder="e.g. Feed Horse, Fill Piggy Bank" onchange="savePrizeConfig()" class="w-full bg-gray-800 border border-gray-700 rounded-xl p-2 text-xs text-white font-bold" />
+            <input type="text" id="prize-name-input" placeholder="e.g. Feed the Horse, Fill Piggy Bank" onchange="savePrizeConfig()" class="w-full bg-gray-800 border border-gray-700 rounded-xl p-2 text-xs text-white font-bold" />
           </div>
           <div>
             <span class="text-[10px] text-gray-400 block mb-1">Unit</span>
             <input type="text" id="prize-unit-input" placeholder="e.g. Carrots, Coins, Mins" onchange="savePrizeConfig()" class="w-full bg-gray-800 border border-gray-700 rounded-xl p-2 text-xs text-white font-bold" />
           </div>
-        </div>
-
-        <div>
-          <span class="text-[10px] text-gray-400 block mb-1">Action / Status Word</span>
-          <input type="text" id="prize-action-input" placeholder="e.g. Fed, Saved, Collected, Filled" onchange="savePrizeConfig()" class="w-full bg-gray-800 border border-gray-700 rounded-xl p-2 text-xs text-white font-bold" />
         </div>
       </div>
 
@@ -471,7 +466,7 @@
         <button onclick="closeScoreboardModal()" class="text-gray-400 hover:text-white text-2xl">✕</button>
       </div>
       
-      <p class="text-xs text-gray-400 mb-4" id="scoreboard-subtitle">Bonus points earned each morning this week:</p>
+      <p class="text-xs text-gray-400 mb-4" id="scoreboard-subtitle">Bonus rewards earned each morning this week:</p>
 
       <div class="space-y-2 mb-6" id="scoreboard-days-list">
         <!-- Rendered Monday to Friday stats -->
@@ -493,7 +488,6 @@
       prizeEmoji: "🥕",
       targetEmoji: "🐴",
       prizeName: "Feed the Horse",
-      prizeAction: "Fed",
       prizeUnit: "Carrots",
       activeTheme: "space",
       streak: 0,
@@ -644,7 +638,6 @@
       if (!appData.prizeEmoji) appData.prizeEmoji = "🥕";
       if (!appData.targetEmoji) appData.targetEmoji = "🐴";
       if (!appData.prizeName) appData.prizeName = "Feed the Horse";
-      if (!appData.prizeAction) appData.prizeAction = "Fed";
       if (!appData.prizeUnit) appData.prizeUnit = "Carrots";
 
       if (!appData.kids || !Array.isArray(appData.kids) || appData.kids.length === 0) {
@@ -739,13 +732,11 @@
       const pEmoji = document.getElementById('prize-emoji-input').value.trim();
       const tEmoji = document.getElementById('target-emoji-input').value.trim();
       const pName = document.getElementById('prize-name-input').value.trim();
-      const pAction = document.getElementById('prize-action-input').value.trim();
       const pUnit = document.getElementById('prize-unit-input').value.trim();
 
       appData.prizeEmoji = pEmoji || "🥕";
       appData.targetEmoji = tEmoji || "🐴";
       appData.prizeName = pName || "Feed the Horse";
-      appData.prizeAction = pAction || "Fed";
       appData.prizeUnit = pUnit || "Carrots";
       saveData();
       updateTimerUI();
@@ -1018,7 +1009,6 @@
       const pEmoji = appData.prizeEmoji || "🥕";
       const tEmoji = appData.targetEmoji || "🐴";
       const pName = appData.prizeName || "Feed the Horse";
-      const pAction = appData.prizeAction || "Fed";
       const pUnit = appData.prizeUnit || "Carrots";
 
       if (!appData.huntStartTime) {
@@ -1050,7 +1040,7 @@
         document.getElementById('elapsed-time-disp').innerText = `Duration: ${elapsedMins}m`;
 
         const bonus = calculateBonusPlayTime();
-        document.getElementById('time-bank-disp').innerHTML = `${pEmoji} ${pName} ${pAction}: <span class="text-green-400">${bonus} ${pUnit}</span> ${tEmoji}`;
+        document.getElementById('time-bank-disp').innerHTML = `${pEmoji} ${pName}: <span class="text-green-400">${bonus} ${pUnit}</span> ${tEmoji}`;
         
         const totalButtons = appData.tasks.length * kids.length;
         let doneCount = 0;
@@ -1155,7 +1145,6 @@
       document.getElementById('prize-emoji-input').value = appData.prizeEmoji || "🥕";
       document.getElementById('target-emoji-input').value = appData.targetEmoji || "🐴";
       document.getElementById('prize-name-input').value = appData.prizeName || "Feed the Horse";
-      document.getElementById('prize-action-input').value = appData.prizeAction || "Fed";
       document.getElementById('prize-unit-input').value = appData.prizeUnit || "Carrots";
 
       [1, 2, 3].forEach(n => {
@@ -1272,11 +1261,10 @@
       const pEmoji = appData.prizeEmoji || "🥕";
       const tEmoji = appData.targetEmoji || "🐴";
       const pName = appData.prizeName || "Feed the Horse";
-      const pAction = appData.prizeAction || "Fed";
       const pUnit = appData.prizeUnit || "Carrots";
 
-      document.getElementById('scoreboard-subtitle').innerText = `Bonus ${pName.toLowerCase()} ${pAction.toLowerCase()} each morning this week:`;
-      document.getElementById('scoreboard-total-label').innerText = `TOTAL ${pName.toUpperCase()} ${pAction.toUpperCase()}`;
+      document.getElementById('scoreboard-subtitle').innerText = `Bonus ${pName.toLowerCase()} earned each morning this week:`;
+      document.getElementById('scoreboard-total-label').innerText = `TOTAL ${pName.toUpperCase()}`;
 
       days.forEach(d => {
         const mins = appData.weeklyStats[d] || 0;
@@ -1285,7 +1273,7 @@
         row.className = "flex justify-between items-center p-2 rounded-lg bg-gray-800 text-xs";
         row.innerHTML = `
           <span class="font-bold text-gray-300">${d}</span>
-          <span class="font-bold ${mins > 0 ? 'text-green-400' : 'text-gray-500'}">${pEmoji} ${mins} ${pUnit} ${pAction} ${tEmoji}</span>
+          <span class="font-bold ${mins > 0 ? 'text-green-400' : 'text-gray-500'}">${pEmoji} ${mins} ${pUnit} ${tEmoji}</span>
         `;
         container.appendChild(row);
       });
